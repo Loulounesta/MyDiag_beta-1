@@ -2133,7 +2133,25 @@ function renderBureauList() {
         setTimeout(() => el.classList.remove('show'), 2800);
     }
 
-    // FIX : sauvegarderLocal avec notification d'erreur visible
+    // --- DEBOUNCE & VISIBILITYCHANGE ---
+    // Les champs oninput déclenchent saveCoproData() à chaque frappe.
+    // Sans debounce, chaque lettre écrit plusieurs Mo dans IndexedDB → freeze sur mobile.
+    let _saveTimer = null;
+    function debouncedSave() {
+        clearTimeout(_saveTimer);
+        _saveTimer = setTimeout(sauvegarderLocal, 800);
+    }
+    // saveCoproData() appelle debouncedSave() à la fin au lieu de sauvegarderLocal() directement.
+    // Les selects (onchange) restent sur sauvegarderLocal() immédiat (1 event = 1 write, pas de frappe répétée).
+
+    // Sauvegarde immédiate dès que l'app passe en arrière-plan (appel reçu, changement d'app, veille).
+    // Fiable sur iOS Safari là où beforeunload ne l'est pas.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            clearTimeout(_saveTimer); // Annule le debounce en cours
+            sauvegarderLocal();       // Sauvegarde immédiate
+        }
+    });
     async function sauvegarderLocal() { 
         try { 
             await localforage.setItem('mydiag_v8_10', db);
@@ -2245,10 +2263,11 @@ function renderBureauList() {
         };
         updateDashboard();
         updateHomeNextStep();
-        sauvegarderLocal();
+        // Debounce pour les champs texte (oninput) — sauvegarde 800ms après la dernière frappe
+        // Les selects appelant saveCoproData() via onchange déclenchent aussi le debounce
+        // (1 event unique par changement de select = acceptable sans debounce, mais on harmonise)
+        debouncedSave();
     }
-
-    // --- NAVIGATION ---
     function goTab(tabId) {
         document.querySelectorAll('.vw').forEach(v => v.classList.remove('on'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
@@ -3041,13 +3060,13 @@ function getShortMat(mat) {
     }
 
     function buildChaufListHTML(aptId) {
-        const apt = db.appts.find(a => a.id === aptId); const aptNum = apt ? apt.num : ''; const myC = db.chaufs.filter(c => c.aptId === aptId);
+        const apt = db.appts.find(a => a.id === aptId); const aptNum = escHtml(apt ? apt.num : ''); const myC = db.chaufs.filter(c => c.aptId === aptId);
         return myC.map((c, index) => `
             <div class="item-row" style="align-items:flex-start;">
                 <div style="flex:1; padding-right:12px; min-width:0;">
                     <div style="font-weight:800; color:var(--tx); font-size:14px; margin-bottom:6px;">🔥 Chauff. ${aptNum} - ${index + 1}</div>
-                    <div style="color:var(--tx2); font-size:12px; line-height:1.4;">${c.energie} · ${c.gen}<br>${c.emetteur||''} | ${c.puissance?c.puissance+'kW':''} | ${c.annee?c.annee:''}</div>
-                    <div style="margin-top:8px;">${c.photo ? `<img src="${c.photo}" class="thumb" style="margin:0;" onclick="viewImage('${c.photo}')">` : ''}</div>
+                    <div style="color:var(--tx2); font-size:12px; line-height:1.4;">${escHtml(c.energie)} · ${escHtml(c.gen)}<br>${escHtml(c.emetteur||'')} | ${c.puissance?escHtml(c.puissance)+'kW':''} | ${c.annee?escHtml(c.annee):''}</div>
+                    <div style="margin-top:8px;">${c.photo ? `<img src="${c.photo}" class="thumb" style="margin:0;" onclick="viewImage(this.src)">` : ''}</div>
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap; width: 94px; justify-content:flex-start; flex-shrink:0;">
                     <button class="btn-xs" style="color:var(--acc); background:var(--acc-l); border:1px solid #BFDBFE; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="triggerUpload('chaufInd', '${c.id}')">📷</button>
@@ -3059,13 +3078,13 @@ function getShortMat(mat) {
     }
 
     function buildEcsListHTML(aptId) {
-        const apt = db.appts.find(a => a.id === aptId); const aptNum = apt ? apt.num : ''; const myE = db.ecss.filter(e => e.aptId === aptId);
+        const apt = db.appts.find(a => a.id === aptId); const aptNum = escHtml(apt ? apt.num : ''); const myE = db.ecss.filter(e => e.aptId === aptId);
         return myE.map((e, index) => `
             <div class="item-row" style="align-items:flex-start;">
                 <div style="flex:1; padding-right:12px; min-width:0;">
                     <div style="font-weight:800; color:var(--tx); font-size:14px; margin-bottom:6px;">🚿 ECS ${aptNum} - ${index + 1}</div>
-                    <div style="color:var(--tx2); font-size:12px; line-height:1.4;">${e.energie} · ${e.type}<br>${e.vol?e.vol+'L':''} | ${e.annee?e.annee:''}</div>
-                    <div style="margin-top:8px;">${e.photo ? `<img src="${e.photo}" class="thumb" style="margin:0;" onclick="viewImage('${e.photo}')">` : ''}</div>
+                    <div style="color:var(--tx2); font-size:12px; line-height:1.4;">${escHtml(e.energie)} · ${escHtml(e.type)}<br>${e.vol?escHtml(e.vol)+'L':''} | ${e.annee?escHtml(e.annee):''}</div>
+                    <div style="margin-top:8px;">${e.photo ? `<img src="${e.photo}" class="thumb" style="margin:0;" onclick="viewImage(this.src)">` : ''}</div>
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap; width: 94px; justify-content:flex-start; flex-shrink:0;">
                     <button class="btn-xs" style="color:var(--acc); background:var(--acc-l); border:1px solid #BFDBFE; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="triggerUpload('ecsInd', '${e.id}')">📷</button>
