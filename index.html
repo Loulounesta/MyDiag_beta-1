@@ -2665,7 +2665,7 @@ function renderBureauList() {
     }
 
     window.applyHabSurface = function() {
-        if(!curAppt || curAppt === 'copro') return toast('⚠️ Sélectionnez d'abord un appartement');
+        if(!curAppt || curAppt === 'copro') return toast("⚠️ Sélectionnez d'abord un appartement");
         if(!lastCalc.sHab) return;
         updateApptField(curAppt, 'surf', lastCalc.sHab);
         let surfInput = document.querySelector(`#vw-appts input[value="${lastCalc.sHab}"]`);
