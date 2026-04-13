@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyDiag - DPE</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1127,6 +1127,7 @@
         <div class="fr"><span class="fl">Ville</span><input type="text" id="copro-ville" placeholder="Ville" oninput="saveCoproData()"></div>        <div class="fr"><span class="fl">Année constr.</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="copro-annee" placeholder="ex: 1975" oninput="saveCoproData()"></div>
         <div class="fr"><span class="fl">Nb bâtiments</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="copro-batiments" placeholder="ex: 3" oninput="saveCoproData(); updateBatimentOptions('apt-bat');"></div>
         <div class="fr"><span class="fl">Nb d'étages</span><input type="number" inputmode="numeric" pattern="[0-9]*" id="copro-etages" placeholder="ex: 4" oninput="saveCoproData(); updateEtageOptions('apt-etage');"></div>
+        <div class="fr"><span class="fl">Email admin</span><input type="email" inputmode="email" id="copro-emailAdmin" placeholder="gestionnaire@copro.fr" oninput="saveCoproData()"></div>
     </div>
 
     <div class="coll-acc-hd" onclick="toggleAcc('docs-acc', this)"><span>📂 Documents & Justificatifs</span> <span style="color:var(--acc);">▼</span></div>
@@ -1645,7 +1646,11 @@
         </div>
 
         <div class="safe-exp-action">
-            <button class="btn-p" onclick="exportJSON()">🧾 Export JSON</button>
+            <button class="btn-p" onclick="exportJSON()">🧾 Export JSON (sauvegarde)</button>
+        </div>
+
+        <div class="safe-exp-action">
+            <button class="btn-p" style="background:#16A34A;" onclick="importData()">📥 Restaurer depuis un JSON</button>
         </div>
 
         <div class="safe-exp-warning">
@@ -1985,20 +1990,25 @@ function renderBureauTarget() {
 }
 
 async function resetAllData() {
-    if(confirm("Voulez-vous télécharger une sauvegarde de sécurité (Backup JSON) avant d'effacer le projet ?\n\nCliquez sur OK pour sauvegarder, ou Annuler pour ignorer.")) {
-        exportJSON();
-    }
-    
-    setTimeout(async () => {
-        const code = prompt("⚠️ ATTENTION : Tapez 'SUPPRIMER' en majuscules pour confirmer l'effacement total.");
-        if (code === "SUPPRIMER") {
-            await localforage.clear();
-            localStorage.clear();
-            location.reload();
-        } else if (code !== null) {
-            alert("Action annulée : le mot de passe est incorrect.");
-        }
-    }, 500);
+    // Étape 1 : proposer la sauvegarde JSON via modale custom
+    showConfirmModal(
+        "Voulez-vous télécharger une sauvegarde JSON avant d'effacer le projet ?",
+        () => { exportJSON(); },
+        'Télécharger', false
+    );
+
+    // Étape 2 : confirmation de suppression (délai pour laisser la 1ère modale disparaître)
+    setTimeout(() => {
+        showConfirmModal(
+            "⚠️ SUPPRESSION TOTALE — Cette action est irréversible. Toutes les données seront perdues. Confirmez-vous ?",
+            async () => {
+                await localforage.clear();
+                localStorage.clear();
+                location.reload();
+            },
+            '🗑️ Tout supprimer', true
+        );
+    }, 400);
 }
     
 // Fonction pour sauvegarder un mur à la volée (Mode PC)
@@ -2013,7 +2023,7 @@ function sauverMurBureau() {
     }
 
     let m = {
-        id: Date.now(),
+        id: genId(), // FIX : ID String cohérent
         aid: targetId,
         nivInt: 0, // Par défaut niveau 0 (ajustable si besoin)
         ori: document.getElementById('bur-ori').value,
@@ -2070,7 +2080,7 @@ function renderBureauList() {
                 <div style="font-weight:800; font-size:13px; color:var(--tx);">${x.ori} | ${shortMat}</div>
                 <div style="font-size:12px; color:var(--tx2);">Dim: ${x.l}x${x.h}m ${x.iso!=='Non' ? '| Iso: '+x.iso : ''}</div>
             </div>
-            <button class="btn-xs" style="color:var(--dan); background:var(--dan-l); padding:6px 10px;" onclick="db.murs=db.murs.filter(m=>m.id!==${x.id}); sauvegarderLocal(); renderBureauList();">❌</button>
+            <button class="btn-xs" style="color:var(--dan); background:var(--dan-l); padding:6px 10px;" onclick="db.murs=db.murs.filter(m=>String(m.id)!=='${x.id}'); sauvegarderLocal(); renderBureauList();">❌</button>
         </div>`;
     }).join('');
 }
@@ -2085,18 +2095,60 @@ function renderBureauList() {
     let totauxSortCol = null; let totauxSortAsc = true;
     let lastCalc = {};
 
+    // --- UTILITAIRES ---
+    // FIX : générateur d'ID universel — type cohérent (String) dans toute l'app
+    function genId() {
+        return String(Date.now()) + '_' + Math.random().toString(36).substr(2, 6);
+    }
+
+    // FIX : échappement HTML pour prévenir XSS sur les noms de fichiers
+    function escHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = String(str);
+        return d.innerHTML;
+    }
+
+    // FIX : modale de confirmation personnalisée (remplace confirm() natif)
+    function showConfirmModal(msg, onConfirm, labelOk = 'Confirmer', danger = false) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:9998;display:flex;align-items:flex-end;justify-content:center;padding:20px;';
+        const bg = danger ? '#EF4444' : 'var(--acc)';
+        overlay.innerHTML = `<div style="background:#fff;border-radius:20px 20px 20px 20px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.35);margin-bottom:env(safe-area-inset-bottom,0px);">
+            <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:20px;line-height:1.5;">${escHtml(msg)}</div>
+            <div style="display:flex;gap:10px;">
+                <button id="modal-cancel-btn" style="flex:1;padding:14px;border-radius:10px;border:1px solid #E2E8F0;font-size:14px;font-weight:700;background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;">Annuler</button>
+                <button id="modal-ok-btn" style="flex:1;padding:14px;border-radius:10px;border:none;background:${bg};color:#fff;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">${escHtml(labelOk)}</button>
+            </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#modal-cancel-btn').onclick = () => overlay.remove();
+        overlay.querySelector('#modal-ok-btn').onclick = () => { overlay.remove(); onConfirm(); };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    }
+
     function toast(msg) {
         let el = document.getElementById('sys-toast');
         el.textContent = msg; el.classList.add('show');
-        setTimeout(() => el.classList.remove('show'), 2500);
+        setTimeout(() => el.classList.remove('show'), 2800);
     }
 
+    // FIX : sauvegarderLocal avec notification d'erreur visible
     async function sauvegarderLocal() { 
         try { 
-            await localforage.setItem('mydiag_v8_10', db); 
+            await localforage.setItem('mydiag_v8_10', db);
+            await localforage.setItem('mydiag_expAppts', expAppts); // FIX : persister l'état des accordéons
             let v = document.getElementById('voyant-save');
             if(v) { v.classList.remove('saved-blink'); void v.offsetWidth; v.classList.add('saved-blink'); }
-        } catch (err) {}
+        } catch (err) {
+            console.error('Erreur sauvegarde IndexedDB:', err);
+            // Toast d'erreur avec style rouge
+            let el = document.getElementById('sys-toast');
+            el.textContent = '⚠️ Sauvegarde échouée ! Stockage saturé ? Exportez vos données.';
+            el.style.background = '#EF4444';
+            el.classList.add('show');
+            setTimeout(() => { el.classList.remove('show'); el.style.background = ''; }, 5000);
+        }
     }
 
     // --- DASHBOARD ---
@@ -2158,10 +2210,41 @@ function renderBureauList() {
             ville: document.getElementById('copro-ville').value,
             annee: document.getElementById('copro-annee').value, 
             batiments: document.getElementById('copro-batiments').value, 
-            etages: document.getElementById('copro-etages').value
+            etages: document.getElementById('copro-etages').value,
+            // FIX : email admin configurable (remplace la valeur hardcodée)
+            emailAdmin: (document.getElementById('copro-emailAdmin') || {}).value || ''
         };
-updateDashboard();
-updateHomeNextStep();
+        // FIX : persister VMC depuis ses selects (ils ont onchange="saveCoproData()")
+        const vmcType = document.getElementById('vmc-type');
+        const vmcPer  = document.getElementById('vmc-periode');
+        if (vmcType || vmcPer) {
+            db.vmc = {
+                type:    vmcType ? vmcType.value : (db.vmc ? db.vmc.type : ''),
+                periode: vmcPer  ? vmcPer.value  : (db.vmc ? db.vmc.periode : '')
+            };
+        }
+        // FIX : persister chauffage collectif
+        const cEn = document.getElementById('col-chauf-energie');
+        const cGe = document.getElementById('col-chauf-gen');
+        const cEm = document.getElementById('col-chauf-emetteur');
+        const cAn = document.getElementById('col-chauf-annee');
+        const cPu = document.getElementById('col-chauf-puissance');
+        if (cEn) db.chaufCol = { ...db.chaufCol,
+            energie:   cEn ? cEn.value : '', gen:     cGe ? cGe.value : '',
+            emetteur:  cEm ? cEm.value : '', annee:   cAn ? cAn.value : '',
+            puissance: cPu ? cPu.value : ''
+        };
+        // FIX : persister ECS collective
+        const eEn = document.getElementById('col-ecs-energie');
+        const eTy = document.getElementById('col-ecs-type');
+        const eAn = document.getElementById('col-ecs-annee');
+        const eVo = document.getElementById('col-ecs-vol');
+        if (eEn) db.ecsCol = { ...db.ecsCol,
+            energie: eEn ? eEn.value : '', type:  eTy ? eTy.value : '',
+            annee:   eAn ? eAn.value : '', vol:   eVo ? eVo.value : ''
+        };
+        updateDashboard();
+        updateHomeNextStep();
         sauvegarderLocal();
     }
 
@@ -2205,6 +2288,12 @@ updateHomeNextStep();
 
     document.getElementById('global-uploader').onchange = function(e) {
         const file = e.target.files[0]; if(!file) return;
+        // FIX : validation type MIME
+        if (!file.type.startsWith('image/')) {
+            toast('❌ Fichier non reconnu. Sélectionnez une image.');
+            e.target.value = '';
+            return;
+        }
         const reader = new FileReader();
         reader.onload = function(ev) {
             const img = new Image();
@@ -2213,30 +2302,35 @@ updateHomeNextStep();
                 const MAX_DIM = 1024;
                 let w = img.width, h = img.height;
                 let scale = Math.min(MAX_DIM/w, MAX_DIM/h);
-                if(scale < 1) { w *= scale; h *= scale; }
+                if(scale < 1) { w = Math.round(w * scale); h = Math.round(h * scale); }
                 canvas.width = w; canvas.height = h;
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                const b64 = canvas.toDataURL('image/png');
+                // FIX : JPEG q=0.82 en mémoire (PNG seulement pour export ZIP)
+                const b64 = canvas.toDataURL('image/jpeg', 0.82);
                 saveFileToTarget({ name: file.name, data: b64 });
             };
+            img.onerror = function() { toast('❌ Impossible de lire cette image.'); };
             img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
+        // FIX : reset input pour permettre de re-sélectionner le même fichier
+        e.target.value = '';
     };
 
     function saveFileToTarget(f) {
         const t = currentUploadTarget;
-        if(t.type === 'doc') { db.docs.push({ id: Date.now(), name: f.name, type: 'img', data: f.data }); renderDocs(); } 
+        // FIX : genId() pour les docs (types cohérents)
+        if(t.type === 'doc') { db.docs.push({ id: genId(), name: f.name, type: 'img', data: f.data }); renderDocs(); } 
         else if (t.type === 'chaufCol') { db.chaufCol.photo = f.data; renderCoproPhotos(); }
         else if (t.type === 'ecsCol') { db.ecsCol.photo = f.data; renderCoproPhotos(); }
         else if (t.type === 'chaufIndTemp') { tempPhotos.chauf[t.id] = f.data; renderApptsList(); }
         else if (t.type === 'ecsIndTemp') { tempPhotos.ecs[t.id] = f.data; renderApptsList(); }
         else if (t.type === 'chaufInd') { 
-            let cIndex = db.chaufs.findIndex(x => x.id === t.id); 
+            let cIndex = db.chaufs.findIndex(x => String(x.id) === String(t.id)); 
             if(cIndex >= 0) { db.chaufs[cIndex].photo = f.data; document.getElementById('chauf-list-'+db.chaufs[cIndex].aptId).innerHTML = buildChaufListHTML(db.chaufs[cIndex].aptId); } 
         }
         else if (t.type === 'ecsInd') { 
-            let eIndex = db.ecss.findIndex(x => x.id === t.id); 
+            let eIndex = db.ecss.findIndex(x => String(x.id) === String(t.id)); 
             if(eIndex >= 0) { db.ecss[eIndex].photo = f.data; document.getElementById('ecs-list-'+db.ecss[eIndex].aptId).innerHTML = buildEcsListHTML(db.ecss[eIndex].aptId); } 
         }
         sauvegarderLocal();
@@ -2251,7 +2345,7 @@ updateHomeNextStep();
         
         let existingIndex = db.docs.findIndex(d => d.name === filename);
         if (existingIndex >= 0) db.docs[existingIndex].data = b64;
-        else db.docs.push({ id: Date.now(), name: filename, type: 'img', data: b64 });
+        else db.docs.push({ id: genId(), name: filename, type: 'img', data: b64 });
         
         sauvegarderLocal(); renderDocs();
         toast("Plan ajouté au dossier Copro 📁");
@@ -2261,24 +2355,77 @@ updateHomeNextStep();
         document.getElementById('list-docs').innerHTML = db.docs.map(d => `
             <div class="item-row" style="align-items:center;">
                 <img src="${d.data}" class="thumb" onclick="viewImage(this.src)">
-                <div style="flex:1; margin-left:12px; font-size:12px; font-weight:bold;">${d.name}</div>
-                <button class="btn-xs" style="color:red;" onclick="db.docs=db.docs.filter(x=>x.id!=${d.id}); renderDocs(); sauvegarderLocal();">X</button>
+                <div style="flex:1; margin-left:12px; font-size:12px; font-weight:bold;">${escHtml(d.name)}</div>
+                <button class="btn-xs" style="color:red;" onclick="db.docs=db.docs.filter(x=>String(x.id)!=='${d.id}'); renderDocs(); sauvegarderLocal();">X</button>
             </div>
         `).join('');
     }
 
     // Initialisation
     window.onload = async () => {
+        // FIX : sécuriser accept de l'input fichier
+        const uploader = document.getElementById('global-uploader');
+        if (uploader) uploader.setAttribute('accept', 'image/*');
+
         const data = await localforage.getItem('mydiag_v8_10');
-        if(data) db = data;
+        if (data) {
+            // FIX : fusion avec le schéma par défaut pour gérer les champs manquants (migrations futures)
+            const defaultDb = {copro:{}, docs:[], vmc:{}, chaufCol:{}, ecsCol:{}, appts:[], chaufs:[], ecss:[], murs:[], fens:[], modelesFens:[], portes:[], plfs:[], plas:[]};
+            db = {...defaultDb, ...data};
+        }
+
+        // FIX : restaurer l'état des accordéons
+        const savedExp = await localforage.getItem('mydiag_expAppts');
+        if (savedExp) expAppts = savedExp;
+
         renderDocs();
         updateDashboard();
-updateHomeNextStep();
-        // Ajout de copro-cp et copro-ville dans la boucle de chargement
-        ['copro-ref','copro-nom','copro-adresse','copro-cp','copro-ville','copro-annee','copro-batiments','copro-etages'].forEach(id => {
-            let k = id.replace('copro-',''); if(db.copro[k]) document.getElementById(id).value = db.copro[k];
+        updateHomeNextStep();
+
+        // Champs copropriété
+        ['copro-ref','copro-nom','copro-adresse','copro-cp','copro-ville','copro-annee','copro-batiments','copro-etages','copro-emailAdmin'].forEach(id => {
+            let k = id.replace('copro-','');
+            if (db.copro[k] !== undefined && db.copro[k] !== null) { const el = document.getElementById(id); if(el) el.value = db.copro[k]; }
         });
+
         peuplerSelects();
+
+        // FIX : restauration VMC
+        if (db.vmc) {
+            if (db.vmc.type) { const el = document.getElementById('vmc-type'); if(el) el.value = db.vmc.type; }
+            if (db.vmc.periode) { const el = document.getElementById('vmc-periode'); if(el) el.value = db.vmc.periode; }
+        }
+
+        // FIX : restauration Chauffage Collectif (select cascadé → délai pour updateChaufGen)
+        if (db.chaufCol && db.chaufCol.energie) {
+            const eEl = document.getElementById('col-chauf-energie');
+            if (eEl) {
+                eEl.value = db.chaufCol.energie;
+                updateChaufGen('col-chauf-energie', 'col-chauf-gen', 'col-chauf-emetteur');
+                setTimeout(() => {
+                    if (db.chaufCol.gen) { const g = document.getElementById('col-chauf-gen'); if(g) g.value = db.chaufCol.gen; }
+                    if (db.chaufCol.emetteur) { const em = document.getElementById('col-chauf-emetteur'); if(em) em.value = db.chaufCol.emetteur; }
+                }, 50);
+            }
+            if (db.chaufCol.annee) { const el = document.getElementById('col-chauf-annee'); if(el) el.value = db.chaufCol.annee; }
+            if (db.chaufCol.puissance) { const el = document.getElementById('col-chauf-puissance'); if(el) el.value = db.chaufCol.puissance; }
+        }
+        renderCoproPhotos();
+
+        // FIX : restauration ECS Collective
+        if (db.ecsCol && db.ecsCol.energie) {
+            const eEl = document.getElementById('col-ecs-energie');
+            if (eEl) {
+                eEl.value = db.ecsCol.energie;
+                updateEcsGen('col-ecs-energie', 'col-ecs-type');
+                setTimeout(() => {
+                    if (db.ecsCol.type) { const t = document.getElementById('col-ecs-type'); if(t) t.value = db.ecsCol.type; }
+                }, 50);
+            }
+            if (db.ecsCol.annee) { const el = document.getElementById('col-ecs-annee'); if(el) el.value = db.ecsCol.annee; }
+            if (db.ecsCol.vol) { const el = document.getElementById('col-ecs-vol'); if(el) el.value = db.ecsCol.vol; }
+        }
+
         renderBibliFens();
     };
 
@@ -2419,7 +2566,7 @@ updateHomeNextStep();
         }
 
         let html = '';
-        const bats = [...new Set(db.appts.map(a => a.bat || '1'))].sort();
+        const bats = [...new Set(db.appts.map(a => a.bat || '1'))].sort((a, b) => parseInt(a) - parseInt(b));
 
         bats.forEach(b => {
             let apptsBat = db.appts.filter(a => (a.bat || '1') === b);
@@ -2518,7 +2665,7 @@ updateHomeNextStep();
     }
 
     window.applyHabSurface = function() {
-        if(!curAppt || curAppt === 'copro') return alert("Sélectionnez un appartement !");
+        if(!curAppt || curAppt === 'copro') return toast('⚠️ Sélectionnez d'abord un appartement');
         if(!lastCalc.sHab) return;
         updateApptField(curAppt, 'surf', lastCalc.sHab);
         let surfInput = document.querySelector(`#vw-appts input[value="${lastCalc.sHab}"]`);
@@ -2528,7 +2675,7 @@ updateHomeNextStep();
 
     function addCalc(type) {
         if(!curAppt) curAppt = 'copro';
-        let el = { id: Date.now(), aid: curAppt, nivInt: curNivInt };
+        let el = { id: genId(), aid: curAppt, nivInt: curNivInt };
         if(type === 'mur') {
             el.mat = 'Inconnu'; el.ori = ''; el.donne = 'Extérieur'; 
             el.l = document.getElementById('calc-L').value; el.h = document.getElementById('calc-h').value; 
@@ -2575,7 +2722,7 @@ updateHomeNextStep();
         const currentDoub = document.getElementById('m-doub').value || 'ABSENT';
 
         let m = { 
-            id: Date.now(), aid: aptId, nivInt: curNivInt, ori: ori, 
+            id: genId(), aid: aptId, nivInt: curNivInt, ori: ori, 
             donne: currentDonne, mat: currentMat, l: String(l), h: currentH, 
             ep: currentEp, iso: currentIso, isoEp: currentIsoEp, doub: currentDoub,
             vectX: dx, vectY: dy 
@@ -2755,64 +2902,134 @@ function getShortMat(mat) {
     }
     
     function checkChaudiereECS(prefix, aptId = null) {
-        const genId = prefix === 'col' ? 'col-chauf-gen' : `ifc-gen-${aptId}`; const eId = prefix === 'col' ? 'col-chauf-energie' : `ifc-energie-${aptId}`; const ecsEId = prefix === 'col' ? 'col-ecs-energie' : `ife-energie-${aptId}`; const ecsTId = prefix === 'col' ? 'col-ecs-type' : `ife-type-${aptId}`;
-        const gen = document.getElementById(genId).value;
-        if (gen.includes('Chaudière') && confirm("Le générateur est une chaudière. Créer automatiquement l'ECS liée ?")) {
-            if(prefix === 'col') {
-                document.getElementById(ecsEId).value = document.getElementById(eId).value; updateEcsGen(ecsEId, ecsTId);
-                setTimeout(() => { document.getElementById(ecsTId).value = "Production par la chaudière"; document.getElementById('ecs-acc').classList.add('open'); document.getElementById('ecs-acc').previousElementSibling.querySelector('span:last-child').textContent = '▼'; saveCoproData(); }, 50);
-            } else {
-                let eVal = document.getElementById(eId).value; db.ecss.push({ id: String(Date.now()+1), aptId: aptId, type: "Production par la chaudière", energie: eVal, annee: "", vol: "" }); sauvegarderLocal(); document.getElementById('ecs-list-'+aptId).innerHTML = buildEcsListHTML(aptId); updateApptBadges(aptId); toast("ECS liée générée ✓");
-            }
-        }
+        // FIX : renommé genElId pour ne pas écraser la fonction globale genId()
+        const genElId = prefix === 'col' ? 'col-chauf-gen' : `ifc-gen-${aptId}`;
+        const eId     = prefix === 'col' ? 'col-chauf-energie' : `ifc-energie-${aptId}`;
+        const ecsEId  = prefix === 'col' ? 'col-ecs-energie' : `ife-energie-${aptId}`;
+        const ecsTId  = prefix === 'col' ? 'col-ecs-type' : `ife-type-${aptId}`;
+        const genEl   = document.getElementById(genElId);
+        if (!genEl || !genEl.value.includes('Chaudière')) return;
+        // FIX : showConfirmModal au lieu de confirm() natif
+        showConfirmModal(
+            "Le générateur est une chaudière. Créer automatiquement l'ECS liée ?",
+            () => {
+                if(prefix === 'col') {
+                    const eEl = document.getElementById(eId);
+                    if(eEl) document.getElementById(ecsEId).value = eEl.value;
+                    updateEcsGen(ecsEId, ecsTId);
+                    setTimeout(() => {
+                        document.getElementById(ecsTId).value = "Production par la chaudière";
+                        document.getElementById('ecs-acc').classList.add('open');
+                        document.getElementById('ecs-acc').previousElementSibling.querySelector('span:last-child').textContent = '▼';
+                        saveCoproData();
+                    }, 50);
+                } else {
+                    let eVal = (document.getElementById(eId) || {}).value || '';
+                    db.ecss.push({ id: genId(), aptId: aptId, type: "Production par la chaudière", energie: eVal, annee: "", vol: "" });
+                    sauvegarderLocal();
+                    document.getElementById('ecs-list-'+aptId).innerHTML = buildEcsListHTML(aptId);
+                    updateApptBadges(aptId);
+                    toast("ECS liée générée ✓");
+                }
+            },
+            'Créer l\'ECS', false
+        );
     }
 
     function showNouvelAppt() { document.getElementById('apt-num').innerHTML = getAptNumOptionsHtml(); updateEtageOptions('apt-etage'); updateBatimentOptions('apt-bat'); document.getElementById('new-apt-form').style.display = 'block'; }
     function hideNouvelAppt() { document.getElementById('new-apt-form').style.display = 'none'; }
     
     function creerAppt() {
-        const num = document.getElementById('apt-num').value; if(!num) return alert("Numéro requis");
-        const a = { id: String(Date.now()), num, bat: document.getElementById('apt-bat').value, etage: document.getElementById('apt-etage').value, niveau: document.getElementById('apt-niveau').value, surf: document.getElementById('apt-surf').value, hsp: document.getElementById('apt-hsp').value, type: parseInt(document.getElementById('apt-type').value) || 1 };
-        db.appts.push(a); expAppts[a.id] = true; curAppt = a.id; curNivInt = 0; sauvegarderLocal(); document.getElementById('apt-num').value = ''; document.getElementById('apt-hsp').value = ''; hideNouvelAppt(); renderApptsList();
+        const num = document.getElementById('apt-num').value;
+        if (!num) return toast("⚠️ Sélectionnez un numéro d'échantillon");
+        // FIX : vérification de doublon
+        if (db.appts.find(a => a.num === num)) return toast(`⚠️ Le lot ${num} existe déjà !`);
+        const a = {
+            id: genId(), // FIX : ID cohérent (String)
+            num,
+            bat: document.getElementById('apt-bat').value,
+            etage: document.getElementById('apt-etage').value,
+            niveau: document.getElementById('apt-niveau').value,
+            surf: document.getElementById('apt-surf').value,
+            hsp: document.getElementById('apt-hsp').value,
+            type: parseInt(document.getElementById('apt-type').value) || 1
+        };
+        db.appts.push(a);
+        expAppts[a.id] = true;
+        curAppt = a.id; curNivInt = 0;
+        sauvegarderLocal();
+        // FIX : réinitialisation complète du formulaire
+        ['apt-num', 'apt-surf', 'apt-hsp'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+        const etEl = document.getElementById('apt-etage'); if(etEl) etEl.value = '';
+        const nivEl = document.getElementById('apt-niveau'); if(nivEl) nivEl.value = '';
+        hideNouvelAppt();
+        renderApptsList();
+        toast(`Lot ${num} créé ✓`);
     }
     
     function dupAppt(id) {
         const src = db.appts.find(a => a.id === id); if(!src) return;
-        let maxNum = 0; db.appts.forEach(apt => { let digits = apt.num.match(/\d+/); if(digits) { let n = parseInt(digits[0]); if(n > maxNum) maxNum = n; } });
+        let maxNum = 0;
+        db.appts.forEach(apt => { let digits = apt.num ? apt.num.match(/\d+/) : null; if(digits) { let n = parseInt(digits[0]); if(n > maxNum) maxNum = n; } });
         let newNumStr = "E" + String(maxNum + 1).padStart(2, '0');
-        const newId = String(Date.now()); const newApt = {...src, id: newId, num: newNumStr}; if (src.surfs) newApt.surfs = JSON.parse(JSON.stringify(src.surfs)); db.appts.push(newApt);
-        const cloneItems = (arrName, fk) => { const items = db[arrName].filter(x => x[fk] === id); items.forEach(item => { let clone = {...item, id: Date.now() + Math.random(), [fk]: newId}; if(arrName === 'fens') { let maxFen = 0; db.fens.forEach(f => { if(f.nom) { let m = f.nom.match(/Fenêtre (\d+)/); if(m && parseInt(m[1]) > maxFen) maxFen = parseInt(m[1]); } }); clone.nom = "Fenêtre " + (maxFen + 1); db.fens.push(clone); } else { db[arrName].push(clone); } }); };
-        cloneItems('murs', 'aid'); cloneItems('fens', 'aid'); cloneItems('portes', 'aid'); cloneItems('plfs', 'aid'); cloneItems('plas', 'aid'); cloneItems('chaufs', 'aptId'); cloneItems('ecss', 'aptId');
-        curAppt = newId; curNivInt = 0; expAppts[newId] = true; sauvegarderLocal(); renderApptsList(); toast("Appartement dupliqué sous " + newNumStr + " ✓");
+        // FIX : éviter collision si le numéro auto existe déjà
+        while (db.appts.find(a => a.num === newNumStr)) { maxNum++; newNumStr = "E" + String(maxNum + 1).padStart(2, '0'); }
+        const newId = genId(); // FIX : genId()
+        const newApt = {...src, id: newId, num: newNumStr};
+        if (src.surfs) newApt.surfs = JSON.parse(JSON.stringify(src.surfs));
+        db.appts.push(newApt);
+        // FIX : genId() pour les clones + comparaison String
+        const cloneItems = (arrName, fk) => {
+            const items = db[arrName].filter(x => String(x[fk]) === String(id));
+            items.forEach(item => {
+                let clone = {...item, id: genId(), [fk]: newId};
+                if(arrName === 'fens') {
+                    let maxFen = 0;
+                    db.fens.forEach(f => { if(f.nom) { let m = f.nom.match(/Fenêtre (\d+)/); if(m && parseInt(m[1]) > maxFen) maxFen = parseInt(m[1]); } });
+                    clone.nom = "Fenêtre " + (maxFen + 1);
+                    db.fens.push(clone);
+                } else { db[arrName].push(clone); }
+            });
+        };
+        cloneItems('murs', 'aid'); cloneItems('fens', 'aid'); cloneItems('portes', 'aid');
+        cloneItems('plfs', 'aid'); cloneItems('plas', 'aid');
+        cloneItems('chaufs', 'aptId'); cloneItems('ecss', 'aptId');
+        curAppt = newId; curNivInt = 0; expAppts[newId] = true;
+        sauvegarderLocal(); renderApptsList();
+        toast("Appartement dupliqué sous " + newNumStr + " ✓");
     }
 
     function toggleAppt(id) { expAppts[id] = !expAppts[id]; renderApptsList(); }
     
-    function suppAppt(id) { 
-        if(confirm("Supprimer définitivement l'appartement et toutes ses parois/systèmes ?")) { 
-            const targetId = String(id);
-            const aptToDelete = db.appts.find(a => String(a.id) === targetId);
-            if (aptToDelete) {
-                db.docs = db.docs.filter(d => !d.name.startsWith(`Croquis_${aptToDelete.num}_`));
-            }
-            db.appts = db.appts.filter(a => String(a.id) !== targetId); 
-            db.murs = db.murs.filter(m => String(m.aid) !== targetId); 
-            db.fens = db.fens.filter(f => String(f.aid) !== targetId); 
-            db.portes = db.portes.filter(p => String(p.aid) !== targetId); 
-            db.plfs = db.plfs.filter(p => String(p.aid) !== targetId); 
-            db.plas = db.plas.filter(p => String(p.aid) !== targetId); 
-            db.chaufs = db.chaufs.filter(c => String(c.aptId) !== targetId); 
-            db.ecss = db.ecss.filter(e => String(e.aptId) !== targetId); 
-            
-            if (tempPhotos.chauf[targetId]) delete tempPhotos.chauf[targetId];
-            if (tempPhotos.ecs[targetId]) delete tempPhotos.ecs[targetId];
-            if (expAppts[targetId]) delete expAppts[targetId];
-
-            if(curAppt === id) curAppt = null; 
-            
-            sauvegarderLocal(); 
-            renderApptsList(); 
-        } 
+    // FIX : suppAppt utilise la modale custom au lieu de confirm()
+    function suppAppt(id) {
+        const aptToDelete = db.appts.find(a => String(a.id) === String(id));
+        const label = aptToDelete ? aptToDelete.num : id;
+        showConfirmModal(
+            `Supprimer définitivement le lot ${label} et toutes ses parois/systèmes ?`,
+            () => {
+                const targetId = String(id);
+                if (aptToDelete) {
+                    db.docs = db.docs.filter(d => !d.name.startsWith(`Croquis_${aptToDelete.num}_`));
+                }
+                db.appts  = db.appts.filter(a  => String(a.id)    !== targetId);
+                db.murs   = db.murs.filter(m   => String(m.aid)   !== targetId);
+                db.fens   = db.fens.filter(f   => String(f.aid)   !== targetId);
+                db.portes = db.portes.filter(p  => String(p.aid)   !== targetId);
+                db.plfs   = db.plfs.filter(p   => String(p.aid)   !== targetId);
+                db.plas   = db.plas.filter(p   => String(p.aid)   !== targetId);
+                db.chaufs = db.chaufs.filter(c  => String(c.aptId) !== targetId);
+                db.ecss   = db.ecss.filter(e   => String(e.aptId)  !== targetId);
+                if (tempPhotos.chauf[targetId]) delete tempPhotos.chauf[targetId];
+                if (tempPhotos.ecs[targetId])   delete tempPhotos.ecs[targetId];
+                if (expAppts[targetId]) delete expAppts[targetId];
+                if (String(curAppt) === targetId) curAppt = null;
+                sauvegarderLocal();
+                renderApptsList();
+                toast(`Lot ${label} supprimé.`);
+            },
+            'Supprimer', true
+        );
     }
     
     function updateApptField(id, field, value) { const a = db.appts.find(x => x.id === id); if(a) { a[field] = value; sauvegarderLocal(); if(field === 'type') renderApptsList(); } }
@@ -2867,35 +3084,51 @@ function getShortMat(mat) {
         el.innerHTML = `<span class="badge-elem">🧱 ${m}</span> <span class="badge-elem">🪟 ${f}</span> <span class="badge-elem">🚪 ${po}</span> <span class="badge-elem">🔝 ${p}</span> <span class="badge-elem">🔽 ${s}</span> <span class="badge-elem ${myC.length?'badge-ok':'badge-warn'}">🔥 ${myC.length}</span> <span class="badge-elem ${myE.length?'badge-ok':'badge-warn'}">🚿 ${myE.length}</span> ${badgeSchema}`;
     }
 
+
     function ajouterChauf(aptId) {
         const e = document.getElementById('ifc-energie-'+aptId).value; const g = document.getElementById('ifc-gen-'+aptId).value;
         const btn = document.getElementById('btn-chauf-'+aptId); const editId = btn.getAttribute('data-edit-id');
-        if(!e||!g) return alert("Énergie et générateur requis");
-        let obj = { id: editId || String(Date.now()), aptId, energie: e, gen: g, emetteur: document.getElementById('ifc-emetteur-'+aptId).value, annee: document.getElementById('ifc-annee-'+aptId).value, puissance: document.getElementById('ifc-puissance-'+aptId).value };
+        if(!e||!g) return toast('⚠️ Énergie et générateur requis');
+        // FIX : genId() pour les nouveaux chauffages
+        let obj = { id: editId || genId(), aptId, energie: e, gen: g, emetteur: document.getElementById('ifc-emetteur-'+aptId).value, annee: document.getElementById('ifc-annee-'+aptId).value, puissance: document.getElementById('ifc-puissance-'+aptId).value };
         if (tempPhotos.chauf[aptId]) { obj.photo = tempPhotos.chauf[aptId]; delete tempPhotos.chauf[aptId]; }
-        if(editId) { const old = db.chaufs.find(x => x.id === editId); if(old && old.photo && !obj.photo) obj.photo = old.photo; db.chaufs[db.chaufs.findIndex(x => x.id === editId)] = obj; btn.textContent = "Ajouter Chauffage"; btn.removeAttribute('data-edit-id'); } else { db.chaufs.push(obj); }
+        if(editId) {
+            // FIX : comparaison String pour trouver l'ancien objet
+            const old = db.chaufs.find(x => String(x.id) === String(editId));
+            if(old && old.photo && !obj.photo) obj.photo = old.photo;
+            db.chaufs[db.chaufs.findIndex(x => String(x.id) === String(editId))] = obj;
+            btn.textContent = "Ajouter Chauffage"; btn.removeAttribute('data-edit-id');
+        } else { db.chaufs.push(obj); }
         document.getElementById('ifc-energie-'+aptId).value = ''; document.getElementById('ifc-gen-'+aptId).value = ''; document.getElementById('ifc-emetteur-'+aptId).value = ''; document.getElementById('ifc-annee-'+aptId).value = ''; document.getElementById('ifc-puissance-'+aptId).value = '';
         sauvegarderLocal(); document.getElementById('chauf-list-'+aptId).innerHTML = buildChaufListHTML(aptId); renderApptsList(); updateApptBadges(aptId); toast("Chauffage enregistré ✓");
     }
     
-    function clonerChauf(id) { const src = db.chaufs.find(x => x.id === id); if(!src) return; db.chaufs.push({...src, id: Date.now() + Math.random()}); sauvegarderLocal(); document.getElementById('chauf-list-'+src.aptId).innerHTML = buildChaufListHTML(src.aptId); updateApptBadges(src.aptId); toast("Chauffage cloné ✓"); }
-    function editerChauf(aptId, chaufId) { const c = db.chaufs.find(x => x.id === chaufId); document.getElementById(`ifc-energie-${aptId}`).value = c.energie; updateChaufGen(`ifc-energie-${aptId}`, `ifc-gen-${aptId}`, `ifc-emetteur-${aptId}`); setTimeout(() => { document.getElementById(`ifc-gen-${aptId}`).value = c.gen; document.getElementById(`ifc-emetteur-${aptId}`).value = c.emetteur; document.getElementById(`ifc-annee-${aptId}`).value = c.annee || ''; document.getElementById(`ifc-puissance-${aptId}`).value = c.puissance || ''; const btn = document.getElementById(`btn-chauf-${aptId}`); btn.textContent = "Modifier ce chauffage"; btn.setAttribute('data-edit-id', chaufId); document.getElementById(`acc-chauf-${aptId}`).classList.add('open'); }, 50); window.scrollTo(0, document.getElementById(`acc-chauf-${aptId}`).offsetTop - 100); }
-    function suppChauf(id, aptId) { db.chaufs = db.chaufs.filter(c => c.id !== id); sauvegarderLocal(); document.getElementById('chauf-list-'+aptId).innerHTML = buildChaufListHTML(aptId); updateApptBadges(aptId); }
+    // FIX : genId() + String find pour clonerChauf/suppChauf/editerChauf
+    function clonerChauf(id) { const src = db.chaufs.find(x => String(x.id) === String(id)); if(!src) return; db.chaufs.push({...src, id: genId()}); sauvegarderLocal(); document.getElementById('chauf-list-'+src.aptId).innerHTML = buildChaufListHTML(src.aptId); updateApptBadges(src.aptId); toast("Chauffage cloné ✓"); }
+    function editerChauf(aptId, chaufId) { const c = db.chaufs.find(x => String(x.id) === String(chaufId)); if(!c) return; document.getElementById(`ifc-energie-${aptId}`).value = c.energie; updateChaufGen(`ifc-energie-${aptId}`, `ifc-gen-${aptId}`, `ifc-emetteur-${aptId}`); setTimeout(() => { document.getElementById(`ifc-gen-${aptId}`).value = c.gen; document.getElementById(`ifc-emetteur-${aptId}`).value = c.emetteur; document.getElementById(`ifc-annee-${aptId}`).value = c.annee || ''; document.getElementById(`ifc-puissance-${aptId}`).value = c.puissance || ''; const btn = document.getElementById(`btn-chauf-${aptId}`); btn.textContent = "Modifier ce chauffage"; btn.setAttribute('data-edit-id', chaufId); document.getElementById(`acc-chauf-${aptId}`).classList.add('open'); }, 50); window.scrollTo(0, document.getElementById(`acc-chauf-${aptId}`).offsetTop - 100); }
+    function suppChauf(id, aptId) { db.chaufs = db.chaufs.filter(c => String(c.id) !== String(id)); sauvegarderLocal(); document.getElementById('chauf-list-'+aptId).innerHTML = buildChaufListHTML(aptId); updateApptBadges(aptId); }
 
     function ajouterEcs(aptId) {
         const e = document.getElementById('ife-energie-'+aptId).value; const t = document.getElementById('ife-type-'+aptId).value;
         const btn = document.getElementById('btn-ecs-'+aptId); const editId = btn.getAttribute('data-edit-id');
-        if(!e||!t) return alert("Type et énergie requis");
-        let obj = { id: editId || String(Date.now()), aptId, type: t, energie: e, annee: document.getElementById('ife-annee-'+aptId).value, vol: document.getElementById('ife-vol-'+aptId).value };
+        if(!e||!t) return toast('⚠️ Type et énergie requis');
+        // FIX : genId() pour les nouvelles ECS
+        let obj = { id: editId || genId(), aptId, type: t, energie: e, annee: document.getElementById('ife-annee-'+aptId).value, vol: document.getElementById('ife-vol-'+aptId).value };
         if (tempPhotos.ecs[aptId]) { obj.photo = tempPhotos.ecs[aptId]; delete tempPhotos.ecs[aptId]; }
-        if(editId) { const old = db.ecss.find(x => x.id === editId); if(old && old.photo && !obj.photo) obj.photo = old.photo; db.ecss[db.ecss.findIndex(x => x.id === editId)] = obj; btn.textContent = "Ajouter ECS"; btn.removeAttribute('data-edit-id'); } else { db.ecss.push(obj); }
+        if(editId) {
+            const old = db.ecss.find(x => String(x.id) === String(editId));
+            if(old && old.photo && !obj.photo) obj.photo = old.photo;
+            db.ecss[db.ecss.findIndex(x => String(x.id) === String(editId))] = obj;
+            btn.textContent = "Ajouter ECS"; btn.removeAttribute('data-edit-id');
+        } else { db.ecss.push(obj); }
         document.getElementById('ife-energie-'+aptId).value = ''; document.getElementById('ife-type-'+aptId).value = ''; document.getElementById('ife-annee-'+aptId).value = ''; document.getElementById('ife-vol-'+aptId).value = '';
         sauvegarderLocal(); document.getElementById('ecs-list-'+aptId).innerHTML = buildEcsListHTML(aptId); renderApptsList(); updateApptBadges(aptId); toast("ECS enregistrée ✓");
     }
     
-    function clonerEcs(id) { const src = db.ecss.find(x => x.id === id); if(!src) return; db.ecss.push({...src, id: Date.now() + Math.random()}); sauvegarderLocal(); document.getElementById('ecs-list-'+src.aptId).innerHTML = buildEcsListHTML(src.aptId); updateApptBadges(src.aptId); toast("ECS clonée ✓"); }
-    function editerEcs(aptId, ecsId) { const e = db.ecss.find(x => x.id === ecsId); document.getElementById(`ife-energie-${aptId}`).value = e.energie; updateEcsGen(`ife-energie-${aptId}`, `ife-type-${aptId}`); setTimeout(() => { document.getElementById(`ife-type-${aptId}`).value = e.type; document.getElementById(`ife-annee-${aptId}`).value = e.annee || ''; document.getElementById(`ife-vol-${aptId}`).value = e.vol || ''; const btn = document.getElementById(`btn-ecs-${aptId}`); btn.textContent = "Modifier cette ECS"; btn.setAttribute('data-edit-id', ecsId); document.getElementById(`acc-ecs-${aptId}`).classList.add('open'); }, 50); window.scrollTo(0, document.getElementById(`acc-ecs-${aptId}`).offsetTop - 100); }
-    function suppEcs(id, aptId) { db.ecss = db.ecss.filter(e => e.id !== id); sauvegarderLocal(); document.getElementById('ecs-list-'+aptId).innerHTML = buildEcsListHTML(aptId); updateApptBadges(aptId); }
+    // FIX : genId() + String find pour clonerEcs/suppEcs/editerEcs
+    function clonerEcs(id) { const src = db.ecss.find(x => String(x.id) === String(id)); if(!src) return; db.ecss.push({...src, id: genId()}); sauvegarderLocal(); document.getElementById('ecs-list-'+src.aptId).innerHTML = buildEcsListHTML(src.aptId); updateApptBadges(src.aptId); toast("ECS clonée ✓"); }
+    function editerEcs(aptId, ecsId) { const e = db.ecss.find(x => String(x.id) === String(ecsId)); if(!e) return; document.getElementById(`ife-energie-${aptId}`).value = e.energie; updateEcsGen(`ife-energie-${aptId}`, `ife-type-${aptId}`); setTimeout(() => { document.getElementById(`ife-type-${aptId}`).value = e.type; document.getElementById(`ife-annee-${aptId}`).value = e.annee || ''; document.getElementById(`ife-vol-${aptId}`).value = e.vol || ''; const btn = document.getElementById(`btn-ecs-${aptId}`); btn.textContent = "Modifier cette ECS"; btn.setAttribute('data-edit-id', ecsId); document.getElementById(`acc-ecs-${aptId}`).classList.add('open'); }, 50); window.scrollTo(0, document.getElementById(`acc-ecs-${aptId}`).offsetTop - 100); }
+    function suppEcs(id, aptId) { db.ecss = db.ecss.filter(e => String(e.id) !== String(id)); sauvegarderLocal(); document.getElementById('ecs-list-'+aptId).innerHTML = buildEcsListHTML(aptId); updateApptBadges(aptId); }
 
     function renderApptsList() {
         const cont = document.getElementById('appts-liste'); document.getElementById('appts-count-lbl').textContent = db.appts.length + " appartement(s)";
@@ -3029,8 +3262,8 @@ function getShortMat(mat) {
     function sauverParoi(type) {
         if(!curAppt) curAppt = 'copro';
 let el = editParoiId
-    ? db[type].find(x => x.id === editParoiId)
-    : { id: Date.now(), aid: String(curAppt ?? 'copro') };
+    ? db[type].find(x => String(x.id) === String(editParoiId))
+    : { id: genId(), aid: String(curAppt ?? 'copro') };
 
 el.aid = String(curAppt ?? 'copro');
 el.nivInt = Number(curNivInt ?? 0);
@@ -3100,12 +3333,32 @@ el.nivInt = Number(curNivInt ?? 0);
     }
 
     function editerParoi(type, id) {
-        editParoiId = id; const p = db[type].find(x => x.id === id);
-        if(type === 'murs') { document.getElementById('m-ori').value = p.ori; document.getElementById('m-donne').value = p.donne; document.getElementById('m-mat').value = p.mat; document.getElementById('m-l').value = p.l; document.getElementById('m-h').value = p.h; document.getElementById('m-ep').value = p.ep || ''; document.getElementById('m-doub').value = p.doub || 'ABSENT'; document.getElementById('m-iso').value = p.iso || 'Non'; document.getElementById('m-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-murs').textContent = "Modifier ce mur"; } else if (type === 'fens') { document.getElementById('f-bibli').value = ''; document.getElementById('f-ori').value = p.ori || 'Nord'; document.getElementById('f-type').value = p.type; toggleFenType(); document.getElementById('f-mat').value = p.mat; document.getElementById('f-vit').value = p.vit; document.getElementById('f-ep').value = p.ep || ''; document.getElementById('f-fer').value = p.fer; document.getElementById('f-l').value = p.l || ''; document.getElementById('f-h').value = p.h || ''; if(document.getElementById('f-diam')) document.getElementById('f-diam').value = p.diam || ''; document.getElementById('f-nb').value = p.nb || '1'; document.getElementById('f-motifs').value = p.motifs || '1'; document.getElementById('btn-save-fens').textContent = "Modifier cette fenêtre"; } else if (type === 'portes') { document.getElementById('po-type').value = p.type || 'Porte opaque pleine'; document.getElementById('po-mat').value = p.mat || 'Bois'; document.getElementById('po-donne').value = p.donne || 'Extérieur'; document.getElementById('po-iso').value = p.iso || 'Non isolée / Inconnue'; document.getElementById('po-sas').value = p.sas || 'Non'; document.getElementById('po-l').value = p.l || ''; document.getElementById('po-h').value = p.h || ''; document.getElementById('btn-save-portes').textContent = "Modifier cette porte"; } else if (type === 'plfs') { document.getElementById('p-type').value = p.type; document.getElementById('p-donne').value = p.donne; document.getElementById('p-l').value = p.l || ''; document.getElementById('p-larg').value = p.larg || ''; document.getElementById('p-s').value = p.s || ''; document.getElementById('p-iso').value = p.iso || 'Non'; document.getElementById('p-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-plfs').textContent = "Modifier ce plafond"; } else if (type === 'plas') { document.getElementById('s-type').value = p.type; document.getElementById('s-donne').value = p.donne; document.getElementById('s-l').value = p.l || ''; document.getElementById('s-larg').value = p.larg || ''; document.getElementById('s-s').value = p.s || ''; document.getElementById('s-iso').value = p.iso || 'Non'; document.getElementById('s-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-plas').textContent = "Modifier ce plancher"; } window.scrollTo(0,0);
+        editParoiId = id;
+        // FIX : comparaison String pour retrouver la paroi
+        const p = db[type].find(x => String(x.id) === String(id));
+        if (!p) { toast('❌ Élément introuvable.'); editParoiId = null; return; }
+        if(type === 'murs') { document.getElementById('m-ori').value = p.ori; document.getElementById('m-donne').value = p.donne; document.getElementById('m-mat').value = p.mat; document.getElementById('m-l').value = p.l; document.getElementById('m-h').value = p.h; document.getElementById('m-ep').value = p.ep || ''; document.getElementById('m-doub').value = p.doub || 'ABSENT'; document.getElementById('m-iso').value = p.iso || 'Non'; document.getElementById('m-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-murs').textContent = "Modifier ce mur"; } else if (type === 'fens') { document.getElementById('f-bibli').value = ''; document.getElementById('f-ori').value = p.ori || 'Nord'; document.getElementById('f-type').value = p.type; toggleFenType(); document.getElementById('f-mat').value = p.mat; document.getElementById('f-vit').value = p.vit; document.getElementById('f-ep').value = p.ep || ''; document.getElementById('f-fer').value = p.fer; document.getElementById('f-l').value = p.l || ''; document.getElementById('f-h').value = p.h || ''; if(document.getElementById('f-diam')) document.getElementById('f-diam').value = p.diam || ''; document.getElementById('f-nb').value = p.nb || '1'; document.getElementById('f-motifs').value = p.motifs || '1'; document.getElementById('btn-save-fens').textContent = "Modifier cette fenêtre"; } else if (type === 'portes') { document.getElementById('po-type').value = p.type || 'Porte opaque pleine'; document.getElementById('po-mat').value = p.mat || 'Bois'; document.getElementById('po-donne').value = p.donne || 'Extérieur'; document.getElementById('po-iso').value = p.iso || 'Non isolée / Inconnue'; document.getElementById('po-sas').value = p.sas || 'Non'; document.getElementById('po-l').value = p.l || ''; document.getElementById('po-h').value = p.h || ''; document.getElementById('btn-save-portes').textContent = "Modifier cette porte"; } else if (type === 'plfs') { document.getElementById('p-type').value = p.type; document.getElementById('p-donne').value = p.donne; document.getElementById('p-l').value = p.l || ''; document.getElementById('p-larg').value = p.larg || ''; document.getElementById('p-s').value = p.s || ''; document.getElementById('p-iso').value = p.iso || 'Non'; document.getElementById('p-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-plfs').textContent = "Modifier ce plafond"; } else if (type === 'plas') { document.getElementById('s-type').value = p.type; document.getElementById('s-donne').value = p.donne; document.getElementById('s-l').value = p.l || ''; document.getElementById('s-larg').value = p.larg || ''; document.getElementById('s-s').value = p.s || ''; document.getElementById('s-iso').value = p.iso || 'Non'; document.getElementById('s-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-plas').textContent = "Modifier ce plancher"; }
+        window.scrollTo(0,0);
     }
 
-    function clonerParoi(type, id) { const src = db[type].find(x => x.id === id); if(!src) return; const clone = {...src, id: Date.now() + Math.random(), nivInt: curNivInt}; if (type === 'fens') { let maxFen = 0; db.fens.forEach(f => { if(f.nom) { let m = f.nom.match(/Fenêtre (\d+)/); if(m && parseInt(m[1]) > maxFen) maxFen = parseInt(m[1]); } }); clone.nom = "Fenêtre " + (maxFen + 1); } db[type].push(clone); sauvegarderLocal(); renderElementsList(type); if(type === 'murs') drawCroquis(); toast("Élément cloné ✓"); }
-    function suppElement(type, id) { db[type] = db[type].filter(x => x.id !== id); sauvegarderLocal(); renderElementsList(type); if(type === 'murs') drawCroquis(); }
+    function clonerParoi(type, id) {
+        // FIX : comparaison String pour retrouver l'élément
+        const src = db[type].find(x => String(x.id) === String(id));
+        if(!src) return;
+        // FIX : genId() au lieu de Date.now() + Math.random() (float)
+        const clone = {...src, id: genId(), nivInt: curNivInt};
+        if (type === 'fens') {
+            let maxFen = 0;
+            db.fens.forEach(f => { if(f.nom) { let m = f.nom.match(/Fenêtre (\d+)/); if(m && parseInt(m[1]) > maxFen) maxFen = parseInt(m[1]); } });
+            clone.nom = "Fenêtre " + (maxFen + 1);
+        }
+        db[type].push(clone);
+        sauvegarderLocal(); renderElementsList(type);
+        if(type === 'murs') drawCroquis();
+        toast("Élément cloné ✓");
+    }
+    // FIX : suppElement avec comparaison String stricte
+    function suppElement(type, id) { db[type] = db[type].filter(x => String(x.id) !== String(id)); sauvegarderLocal(); renderElementsList(type); if(type === 'murs') drawCroquis(); }
     
     function renderElementsList(tabId) {
         if(!curAppt) curAppt = 'copro'; 
@@ -3128,9 +3381,9 @@ el.nivInt = Number(curNivInt ?? 0);
                     <div style="color:var(--tx2); font-size:12px; line-height:1.5; word-wrap: break-word;">${dimText}</div>
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap; width: 94px; justify-content:flex-start; flex-shrink:0;">
-                    <button class="btn-xs" style="color:var(--ok); background:var(--ok-l); border:1px solid #BBF7D0; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="clonerParoi('${type}', ${x.id})">🔄</button>
-                    <button class="btn-xs" style="color:var(--acc); background:var(--acc-l); border:1px solid #BFDBFE; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="editerParoi('${type}', ${x.id})">✏️</button>
-                    <button class="btn-xs" style="color:var(--dan); background:var(--dan-l); border:1px solid #FECACA; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="suppElement('${type}', ${x.id})">❌</button>
+                    <button class="btn-xs" style="color:var(--ok); background:var(--ok-l); border:1px solid #BBF7D0; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="clonerParoi('${type}', '${x.id}')">🔄</button>
+                    <button class="btn-xs" style="color:var(--acc); background:var(--acc-l); border:1px solid #BFDBFE; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="editerParoi('${type}', '${x.id}')">✏️</button>
+                    <button class="btn-xs" style="color:var(--dan); background:var(--dan-l); border:1px solid #FECACA; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="suppElement('${type}', '${x.id}')">❌</button>
                 </div>
             </div>`;
         }).join('');
@@ -3146,6 +3399,42 @@ el.nivInt = Number(curNivInt ?? 0);
     // Export JSON (alias pour compatibilité UI)
     function exportJSON() {
              exportData();
+    }
+    // FIX : importation d'un backup JSON avec validation et reload propre
+    function importData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+                toast('❌ Fichier invalide. Sélectionnez un fichier .json');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async function(ev) {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    // Validation minimale de structure
+                    if (typeof parsed !== 'object' || !parsed.copro || !Array.isArray(parsed.appts)) {
+                        return toast('❌ Fichier JSON invalide ou incompatible avec MyDiag.');
+                    }
+                    // Fusion avec schéma par défaut pour tolérer les champs manquants
+                    const defaultDb = {copro:{}, docs:[], vmc:{}, chaufCol:{}, ecsCol:{}, appts:[], chaufs:[], ecss:[], murs:[], fens:[], modelesFens:[], portes:[], plfs:[], plas:[]};
+                    db = {...defaultDb, ...parsed};
+                    await localforage.setItem('mydiag_v8_10', db);
+                    await localforage.setItem('mydiag_expAppts', {});
+                    toast('✅ Backup restauré ! Rechargement...');
+                    setTimeout(() => location.reload(), 1200);
+                } catch(err) {
+                    console.error('Import JSON:', err);
+                    toast('❌ Erreur de lecture du fichier JSON.');
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
     }
     // Traducteur pour générer le code simplifié Annalyssimmo
     function genererCodeFen(f) {
@@ -3202,7 +3491,7 @@ el.nivInt = Number(curNivInt ?? 0);
     }
     
     function exportExcel() {
-        if (typeof XLSX === 'undefined') return alert("La bibliothèque XLSX n'est pas chargée."); toast("Génération du fichier Excel..."); let wb = XLSX.utils.book_new(); 
+        if (typeof XLSX === 'undefined') return toast('❌ Bibliothèque XLSX non chargée - vérifiez votre connexion'); toast("Génération du fichier Excel..."); let wb = XLSX.utils.book_new(); 
         const getAptNum = (id) => { if(id === 'copro') return 'Communs'; let a = db.appts.find(x=>x.id===id); return a ? a.num : "Inconnu"; };
         let coproData = [{ "Référence": db.copro.ref || "", "Nom": db.copro.nom || "", "Adresse": db.copro.adresse || "", "Code Postal": db.copro.cp || "", "Ville": db.copro.ville || "", "Année constr.": db.copro.annee || "", "Bâtiments": db.copro.batiments || "", "Étages": db.copro.etages || "", "VMC Type": db.vmc.type || "", "VMC Période": db.vmc.periode || "", "Chauff Col. Energie": db.chaufCol.energie || "", "Chauff Col. Générateur": db.chaufCol.gen || "", "Chauff Col. Emetteur": db.chaufCol.emetteur || "", "Chauff Col. Année": db.chaufCol.annee || "", "Chauff Col. Puissance": db.chaufCol.puissance || "", "ECS Col. Energie": db.ecsCol.energie || "", "ECS Col. Type": db.ecsCol.type || "", "ECS Col. Année": db.ecsCol.annee || "", "ECS Col. Volume": db.ecsCol.vol || "" }];        let apptsData = db.appts.map(a => ({ "Lot": a.num, "Bâtiment": a.bat || "", "Type": a.type === 2 ? "Duplex" : a.type === 3 ? "Triplex" : "Plain-pied", "Étage": a.etage || "", "Niveau ADN": a.niveau || "", "Surface (m²)": a.surf || "", "HSP (m)": a.hsp || "" })); if(apptsData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(apptsData), "Appartements");
         let mursData = db.murs.map(m => ({ "Lot": getAptNum(m.aid), "Niveau (Duplex)": m.nivInt || 0, "Orientation": m.ori || "Auto", "Donne sur": m.donne || "", "Matériau": m.mat || "", "Longueur (m)": m.l || "", "Hauteur (m)": m.h || "", "Épaisseur (cm)": m.ep || "", "Doublage": m.doub || "ABSENT", "Isolant": m.iso || "", "Ép. Isolant (cm)": m.isoEp || "" })); if(mursData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mursData), "Murs");
@@ -3232,17 +3521,79 @@ if(fensData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fe
         let d = new Date(); let fName = `Export_MyDiag_${db.copro.ref||'Projet'}_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.xlsx`; XLSX.writeFile(wb, fName);
     }
     
+    // FIX : helper pour convertir une image base64 (JPEG ou PNG) en PNG base64 pour le ZIP
+    async function toPngBase64(dataUrl) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width; canvas.height = img.height;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                const pngData = canvas.toDataURL('image/png').split(',')[1];
+                resolve(pngData);
+            };
+            img.onerror = () => resolve(dataUrl.includes('base64,') ? dataUrl.split(',')[1] : dataUrl);
+            img.src = dataUrl;
+        });
+    }
+
     async function exportZipPhotos() {
-        if (typeof JSZip === 'undefined') return alert("La bibliothèque JSZip n'est pas chargée."); toast("Préparation du ZIP en cours..."); let zip = new JSZip(); let hasPhotos = false;
-        if (db.docs && db.docs.length > 0) { let docFolder = zip.folder("Documents_Copro"); db.docs.forEach((d, i) => { if (d.data && d.data.includes('base64,')) { let b64 = d.data.split(',')[1]; let ext = d.type === 'img' ? '.png' : '.pdf'; docFolder.file(d.name || `doc_${i}${ext}`, b64, {base64: true}); hasPhotos = true; } }); }
+        if (typeof JSZip === 'undefined') return toast("La bibliothèque JSZip n'est pas chargée.");
+        toast("Préparation du ZIP en cours...");
+        let zip = new JSZip(); let hasPhotos = false;
+
+        if (db.docs && db.docs.length > 0) {
+            let docFolder = zip.folder("Documents_Copro");
+            for (let i = 0; i < db.docs.length; i++) {
+                const d = db.docs[i];
+                if (d.data && d.data.includes('base64,')) {
+                    // FIX : conversion JPEG→PNG pour compatibilité logiciel métier
+                    const pngB64 = d.type === 'img' ? await toPngBase64(d.data) : d.data.split(',')[1];
+                    const ext = d.type === 'img' ? '.png' : '.pdf';
+                    const safeName = (d.name || `doc_${i}`).replace(/\.[^.]+$/, '') + ext;
+                    docFolder.file(safeName, pngB64, {base64: true});
+                    hasPhotos = true;
+                }
+            }
+        }
+
         let coproFolder = zip.folder("Systemes_Collectifs");
-        if (db.chaufCol && db.chaufCol.photo && db.chaufCol.photo.includes('base64,')) { coproFolder.file("Plaque_Chauffage_Collectif.png", db.chaufCol.photo.split(',')[1], {base64: true}); hasPhotos = true; }
-        if (db.ecsCol && db.ecsCol.photo && db.ecsCol.photo.includes('base64,')) { coproFolder.file("Plaque_ECS_Collective.png", db.ecsCol.photo.split(',')[1], {base64: true}); hasPhotos = true; }
+        if (db.chaufCol && db.chaufCol.photo && db.chaufCol.photo.includes('base64,')) {
+            coproFolder.file("Plaque_Chauffage_Collectif.png", await toPngBase64(db.chaufCol.photo), {base64: true});
+            hasPhotos = true;
+        }
+        if (db.ecsCol && db.ecsCol.photo && db.ecsCol.photo.includes('base64,')) {
+            coproFolder.file("Plaque_ECS_Collective.png", await toPngBase64(db.ecsCol.photo), {base64: true});
+            hasPhotos = true;
+        }
+
         let indFolder = zip.folder("Systemes_Individuels");
-        db.chaufs.forEach((c, i) => { if (c.photo && c.photo.includes('base64,')) { let apt = db.appts.find(a => a.id === c.aptId); let aNum = apt ? apt.num : "Inconnu"; indFolder.file(`Chauffage_${aNum}_${i+1}.png`, c.photo.split(',')[1], {base64: true}); hasPhotos = true; } });
-        db.ecss.forEach((e, i) => { if (e.photo && e.photo.includes('base64,')) { let apt = db.appts.find(a => a.id === e.aptId); let aNum = apt ? apt.num : "Inconnu"; indFolder.file(`ECS_${aNum}_${i+1}.png`, e.photo.split(',')[1], {base64: true}); hasPhotos = true; } });
+        for (let i = 0; i < db.chaufs.length; i++) {
+            const c = db.chaufs[i];
+            if (c.photo && c.photo.includes('base64,')) {
+                let apt = db.appts.find(a => String(a.id) === String(c.aptId));
+                let aNum = apt ? apt.num : "Inconnu";
+                indFolder.file(`Chauffage_${aNum}_${i+1}.png`, await toPngBase64(c.photo), {base64: true});
+                hasPhotos = true;
+            }
+        }
+        for (let i = 0; i < db.ecss.length; i++) {
+            const e = db.ecss[i];
+            if (e.photo && e.photo.includes('base64,')) {
+                let apt = db.appts.find(a => String(a.id) === String(e.aptId));
+                let aNum = apt ? apt.num : "Inconnu";
+                indFolder.file(`ECS_${aNum}_${i+1}.png`, await toPngBase64(e.photo), {base64: true});
+                hasPhotos = true;
+            }
+        }
+
         if (!hasPhotos) { toast("Aucune photo à exporter."); return; }
-        let content = await zip.generateAsync({type:"blob"}); let a = document.createElement("a"); a.href = URL.createObjectURL(content); let d = new Date(); a.download = `Photos_MyDiag_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.zip`; document.body.appendChild(a); a.click(); document.body.removeChild(a); toast("ZIP téléchargé !");
+        let content = await zip.generateAsync({type:"blob"});
+        let a = document.createElement("a"); a.href = URL.createObjectURL(content);
+        let d = new Date();
+        a.download = `Photos_MyDiag_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.zip`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        toast("ZIP téléchargé ✅ (photos converties en PNG)");
     }
     // --- EMAILS ---
     window.envoyerMailExport = function() {
@@ -3261,17 +3612,15 @@ if(fensData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fe
         const subject = encodeURIComponent(`Demande de RDV supplémentaires - Réf: ${ref}`);
         const body = encodeURIComponent(`Bonjour,\n\nLors de ma visite sur le dossier "${nom}" (Réf: ${ref}), je n'ai pas pu accéder à tous les échantillons nécessaires pour la représentativité du DPE.\n\nPourriez-vous s'il vous plaît planifier des rendez-vous supplémentaires avec les occupants manquants ?\n\nMerci d'avance pour votre retour.\n\nCordialement.`);
         
-        // Remplace "admin@tonentreprise.fr" par la vraie adresse si tu veux que ce soit pré-rempli
-        const adresseAdmin = "c.louis@eti360.fr"; 
+        // FIX : email admin lu depuis db.copro (configurable, non hardcodé)
+        const adresseAdmin = (db.copro && db.copro.emailAdmin) ? db.copro.emailAdmin : "";
         
         window.location.href = `mailto:${adresseAdmin}?subject=${subject}&body=${body}`;
         toast("Ouverture de la messagerie...");
     };
-    window.addEventListener('beforeunload', function (e) {
-    // Annule l'événement de fermeture pour afficher l'avertissement du navigateur
-    e.preventDefault(); 
-    e.returnValue = ''; 
-});
+
+    // FIX : beforeunload supprimé — non fiable sur iOS Safari et peut bloquer la navigation
+    // La protection est assurée par les sauvegardes automatiques (sauvegarderLocal) à chaque action
 </script>
 
 </body>
