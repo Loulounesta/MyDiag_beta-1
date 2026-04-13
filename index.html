@@ -1040,8 +1040,218 @@
 #vw-murs #btn-save-murs{
     margin-top:0;
 }
-    
-    
+
+/* === BIBLIOTHÈQUE GLOBALE === */
+.bibli-g-acc {
+    margin-top: 16px;
+    border-radius: var(--r);
+    border: 1.5px solid #CBD5E1;
+    overflow: hidden;
+    background: var(--sur);
+    box-shadow: 0 4px 16px rgba(15,23,42,0.04);
+}
+.bibli-g-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #0F172A;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.bibli-g-hd-title {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.bibli-g-hd-count {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+.bibli-g-hd-arrow {
+    color: #94A3B8;
+    font-size: 16px;
+    transition: transform 0.2s;
+}
+.bibli-g-acc.open .bibli-g-hd-arrow { transform: rotate(180deg); }
+.bibli-g-body { display: none; }
+.bibli-g-acc.open .bibli-g-body { display: block; }
+.bibli-g-lot-hd {
+    padding: 8px 16px;
+    background: #F8FAFC;
+    border-top: 1px solid var(--bor);
+    border-bottom: 1px solid var(--bor);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--tx2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.bibli-g-lot-count {
+    background: #E2E8F0;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 999px;
+}
+.bibli-g-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--bor);
+    gap: 10px;
+    background: #fff;
+}
+.bibli-g-row:last-child { border-bottom: none; }
+.bibli-g-info { flex: 1; min-width: 0; }
+.bibli-g-dim { font-size: 12px; color: var(--tx2); line-height: 1.4; margin-top: 2px; }
+.bibli-g-sel {
+    width: 100%;
+    margin-top: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--acc);
+    background: var(--acc-l);
+    border: 1px solid #BFDBFE;
+    border-radius: 6px;
+    padding: 4px 6px;
+    -webkit-appearance: none;
+}
+.bibli-g-btns { display: flex; gap: 4px; flex-shrink: 0; }
+.bibli-g-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    -webkit-tap-highlight-color: transparent;
+}
+/* === POINT 1 : COMPLÉTION PAR LOT === */
+.compl-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+.compl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    border: 1px solid transparent;
+}
+.compl-ok  { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+.compl-warn{ background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.compl-na  { background: #F1F5F9; color: #64748B; border-color: #E2E8F0; }
+.compl-score {
+    margin-top: 6px;
+    height: 4px;
+    border-radius: 999px;
+    background: #E2E8F0;
+    overflow: hidden;
+}
+.compl-score-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s;
+}
+
+/* === POINT 2 : BARRE SAISIE RAPIDE MUR === */
+.quick-mur-bar {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    border-radius: var(--r);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.15);
+}
+.quick-mur-bar select,
+.quick-mur-bar input {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 10px;
+    font-size: 14px;
+    font-weight: 800;
+    outline: none;
+    -webkit-appearance: none;
+}
+.quick-mur-bar select { flex: 0 0 72px; }
+.quick-mur-bar input  { flex: 1; min-width: 52px; text-align: center; }
+.quick-mur-bar input::placeholder { color: rgba(255,255,255,0.45); font-weight: 600; }
+.quick-mur-bar select option { background: #1E293B; color: #fff; }
+.quick-mur-btn {
+    background: #2563EB;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.quick-mur-label {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: -2px;
+}
+
+/* === POINT 3 : MÉMO / NOTE === */
+.elem-note-display {
+    margin-top: 5px;
+    font-size: 11px;
+    font-style: italic;
+    color: #94A3B8;
+    cursor: pointer;
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.elem-note-display:empty::before { content: "📝 Ajouter un mémo..."; }
+.elem-note-input {
+    display: none;
+    width: 100%;
+    margin-top: 5px;
+    font-size: 12px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 6px 8px;
+    color: var(--tx);
+    font-style: italic;
+    resize: none;
+}
     </style>
 </head>
 <body>
@@ -1342,6 +1552,20 @@
 
     <div class="safe-section-title">Saisie du mur</div>
 
+    <!-- POINT 2 : BARRE SAISIE RAPIDE -->
+    <div class="quick-mur-bar">
+        <div class="quick-mur-label">⚡ Saisie rapide — Orientation · L · H</div>
+        <select id="qm-ori">
+            <option value="Nord">N</option>
+            <option value="Est">E</option>
+            <option value="Sud">S</option>
+            <option value="Ouest">O</option>
+        </select>
+        <input type="number" inputmode="decimal" step="any" id="qm-l" placeholder="L (m)" onkeypress="if(event.key==='Enter')document.getElementById('qm-h').focus()">
+        <input type="number" inputmode="decimal" step="any" id="qm-h" placeholder="H (m)" onkeypress="if(event.key==='Enter')sauvegarderMurRapide()">
+        <button class="quick-mur-btn" onclick="sauvegarderMurRapide()" title="Ajouter ce mur">➕</button>
+    </div>
+
     <div class="safe-subcard">
         <div class="safe-subhead">
             Contexte et composition
@@ -1351,7 +1575,7 @@
             <div class="fr"><span class="fl">Orientation</span><select id="m-ori"><option>Nord</option><option>Est</option><option>Sud</option><option>Ouest</option></select></div>
             <div class="fr"><span class="fl">Donne sur</span><select id="m-donne"></select></div>
             <div class="fr"><span class="fl">Matériau</span><select id="m-mat"></select></div>
-            <div class="fr"><span class="fl">Ép. Mur (cm)</span><input type="number" inputmode="decimal" step="any" id="m-ep" placeholder="ex: 20"></div>
+            <div class="fr"><span class="fl">Ép. Mur (cm)</span><input type="number" inputmode="numeric" step="1" id="m-ep" placeholder="ex: 20"></div>
         </div>
     </div>
 
@@ -1374,7 +1598,7 @@
             <span class="safe-subhint">Thermique et composition intérieure / extérieure.</span>
         </div>
         <div class="card" style="margin:0; box-shadow:none; border:none; border-radius:0;">
-            <div class="fr"><span class="fl">Isolant</span><select id="m-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="m-iso-ep" placeholder="cm" style="flex:0 0 70px;"></div>
+            <div class="fr"><span class="fl">Isolant</span><select id="m-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="m-iso-ep" placeholder="cm" style="flex:0 0 70px;" inputmode="numeric" step="1"></div>
             <div class="fr"><span class="fl">Doublage</span>
                 <select id="m-doub">
                     <option value="ABSENT">Absent</option>
@@ -1398,6 +1622,7 @@
             <div id="list-murs"></div>
         </div>
     </div>
+    <div id="bibli-g-murs"></div>
 </div>
 
 <div id="vw-fen" class="vw">
@@ -1435,7 +1660,7 @@
             <div class="fr"><span class="fl">Type</span><select id="f-type" onchange="toggleFenType()"></select></div>
             <div class="fr"><span class="fl">Matériau</span><select id="f-mat"></select></div>
             <div class="fr"><span class="fl">Vitrage</span><select id="f-vit"></select></div>
-            <div class="fr"><span class="fl">Lame (mm)</span><input type="number" inputmode="decimal" step="any" inputmode="numeric" id="f-ep" placeholder="ex: 16"></div>
+            <div class="fr"><span class="fl">Lame (mm)</span><input type="number" inputmode="numeric" step="1" id="f-ep" placeholder="ex: 16"></div>
             <div class="fr"><span class="fl">Fermeture</span><select id="f-fer"></select></div>
         </div>
     </div>
@@ -1448,7 +1673,7 @@
         <div class="card" style="margin:0; box-shadow:none; border:none; border-radius:0;">
             <div class="dim-block" id="f-dim-lh">
                 <div style="font-size:12px; font-weight:800; color:#64748b; margin-bottom:8px;">Dimensions L x H (cm)</div>
-                <div class="dim-inputs"><input type="number" inputmode="decimal" step="any" id="f-l" placeholder="L"> <span>X</span> <input type="number" id="f-h" placeholder="H"></div>
+                <div class="dim-inputs"><input type="number" inputmode="decimal" step="any" id="f-l" placeholder="L"> <span>X</span> <input type="number" inputmode="decimal" step="any" id="f-h" placeholder="H"></div>
             </div>
 
             <div class="dim-block" id="f-dim-diam" style="display:none;">
@@ -1464,8 +1689,8 @@
             <span class="safe-fen-subhint">Nombre d’éléments et nombre de motifs / vantaux.</span>
         </div>
         <div class="card" style="margin:0; box-shadow:none; border:none; border-radius:0;">
-            <div class="fr"><span class="fl">Quantité</span><input type="number" inputmode="decimal" step="any" id="f-nb" value="1"></div>
-            <div class="fr"><span class="fl">Motifs</span><input type="number" inputmode="decimal" step="any" id="f-motifs" value="1" title="Nombre de motifs / vantaux"></div>
+            <div class="fr"><span class="fl">Quantité</span><input type="number" inputmode="numeric" step="1" id="f-nb" value="1"></div>
+            <div class="fr"><span class="fl">Motifs</span><input type="number" inputmode="numeric" step="1" id="f-motifs" value="1" title="Nombre de motifs / vantaux"></div>
         </div>
     </div>
 
@@ -1480,6 +1705,7 @@
             <div id="list-fens" style="margin-top:0;"></div>
         </div>
     </div>
+    <div id="bibli-g-fens"></div>
 </div>
 
 <div id="vw-portes" class="vw">
@@ -1497,6 +1723,7 @@
     </div>
     <button class="btn-p" id="btn-save-portes" onclick="sauverParoi('portes')">Enregistrer</button>
     <div id="list-portes" style="margin-top:20px;"></div>
+    <div id="bibli-g-portes"></div>
 </div>
 
 <div id="vw-plafonds" class="vw">
@@ -1509,10 +1736,11 @@
             <div class="dim-inputs"><input type="number" inputmode="decimal" step="any" id="p-l" placeholder="L"> <span>X</span> <input type="number" inputmode="decimal" step="any" id="p-larg" placeholder="larg"></div>
         </div>
         <div class="fr"><span class="fl">Surface (m²)</span><input type="number" inputmode="decimal" step="any" id="p-s" placeholder="ou S directe"></div>
-        <div class="fr"><span class="fl">Isolant</span><select id="p-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="p-iso-ep" placeholder="cm" style="flex:0 0 70px;"></div>
+        <div class="fr"><span class="fl">Isolant</span><select id="p-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="p-iso-ep" placeholder="cm" style="flex:0 0 70px;" inputmode="numeric" step="1"></div>
     </div>
     <button class="btn-p" id="btn-save-plfs" onclick="sauverParoi('plfs')">Enregistrer</button>
     <div id="list-plfs" style="margin-top:20px;"></div>
+    <div id="bibli-g-plfs"></div>
 </div>
 
 <div id="vw-planchers" class="vw">
@@ -1525,10 +1753,11 @@
             <div class="dim-inputs"><input type="number" inputmode="decimal" step="any" id="s-l" placeholder="L"> <span>X</span> <input type="number" inputmode="decimal" step="any" id="s-larg" placeholder="larg"></div>
         </div>
         <div class="fr"><span class="fl">Surface (m²)</span><input type="number" inputmode="decimal" step="any" id="s-s" placeholder="ou S directe"></div>
-        <div class="fr"><span class="fl">Isolant</span><select id="s-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="s-iso-ep" placeholder="cm" style="flex:0 0 70px;"></div>
+        <div class="fr"><span class="fl">Isolant</span><select id="s-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="s-iso-ep" placeholder="cm" style="flex:0 0 70px;" inputmode="numeric" step="1"></div>
     </div>
     <button class="btn-p" id="btn-save-plas" onclick="sauverParoi('plas')">Enregistrer</button>
     <div id="list-plas" style="margin-top:20px;"></div>
+    <div id="bibli-g-plas"></div>
 </div>
 
 <div id="vw-bim" class="vw"><div id="bim-container"></div></div>
@@ -1570,7 +1799,7 @@
             <div class="fr"><span class="fl">Orientation</span><select id="bur-ori"><option>Nord</option><option>Est</option><option>Sud</option><option>Ouest</option></select></div>
             <div class="fr"><span class="fl">Matériau</span><select id="bur-mat"></select></div>
             <div class="fr"><span class="fl">Donne sur</span><select id="bur-donne"></select></div>
-            <div class="fr"><span class="fl">Isolant / Ép.</span><select id="bur-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="bur-iso-ep" placeholder="cm" style="flex:0 0 70px;"></div>
+            <div class="fr"><span class="fl">Isolant / Ép.</span><select id="bur-iso" style="flex:1;"><option>Non</option><option>ITI</option><option>ITE</option></select><input type="number" inputmode="decimal" step="any" id="bur-iso-ep" placeholder="cm" style="flex:0 0 70px;" inputmode="numeric" step="1"></div>
         </div>
     </div>
 
@@ -2011,6 +2240,66 @@ async function resetAllData() {
     }, 400);
 }
     
+// === POINT 2 : SAISIE RAPIDE MUR (onglet Murs) ===
+function sauvegarderMurRapide() {
+    const ori = document.getElementById('qm-ori').value;
+    const L   = document.getElementById('qm-l').value;
+    const H   = document.getElementById('qm-h').value;
+    if (!L || !H) { toast('⚠️ Saisissez L et H'); return; }
+
+    // Reprend les propriétés stables du formulaire détaillé si déjà rempli
+    const mat   = document.getElementById('m-mat').value || 'Inconnu';
+    const ep    = document.getElementById('m-ep').value  || '';
+    const donne = document.getElementById('m-donne').value || 'Extérieur';
+    const iso   = document.getElementById('m-iso').value  || 'Non';
+    const isoEp = document.getElementById('m-iso-ep').value || '';
+    const doub  = document.getElementById('m-doub').value  || 'ABSENT';
+
+    const m = {
+        id: genId(),
+        aid: String(curAppt ?? 'copro'),
+        nivInt: Number(curNivInt ?? 0),
+        ori, mat, donne, iso, isoEp, doub, ep,
+        l: L, h: H
+    };
+    db.murs.push(m);
+    sauvegarderLocal();
+    // Vider L seulement — on garde orientation et H pour le prochain mur
+    document.getElementById('qm-l').value = '';
+    document.getElementById('qm-l').focus();
+    toast(`N°${db.murs.filter(x=>String(x.aid)===String(curAppt)&&Number(x.nivInt)===Number(curNivInt)).length} ajouté (${ori} · ${L}×${H}m)`);
+    renderElementsList('murs');
+    drawCroquis();
+    if (curAppt && curAppt !== 'copro') updateApptBadges(curAppt);
+}
+
+// === POINT 3 : MÉMOS / NOTES LIBRES ===
+function editNote(type, id) {
+    const el = db[type].find(x => String(x.id) === String(id));
+    if (!el) return;
+    const display = document.getElementById('note-d-' + id);
+    const input   = document.getElementById('note-i-' + id);
+    if (!display || !input) return;
+    display.style.display = 'none';
+    input.style.display   = 'block';
+    input.value = el.note || '';
+    input.focus();
+    input.select();
+}
+
+function saveNote(type, id) {
+    const el = db[type].find(x => String(x.id) === String(id));
+    if (!el) return;
+    const input   = document.getElementById('note-i-' + id);
+    const display = document.getElementById('note-d-' + id);
+    if (!input || !display) return;
+    el.note = input.value.trim();
+    sauvegarderLocal();
+    input.style.display   = 'none';
+    display.style.display = 'flex';
+    display.textContent   = el.note ? '📝 ' + el.note : '';
+}
+
 // Fonction pour sauvegarder un mur à la volée (Mode PC)
 function sauverMurBureau() {
     let targetId = document.getElementById('bur-target').value;
@@ -2806,9 +3095,18 @@ function getShortMat(mat) {
             let p1 = points[i]; let p2 = points[i+1]; let midX = (p1.x + p2.x) / 2; let midY = (p1.y + p2.y) / 2;
             let px = offsetX + (midX - minX) * scale; let py = offsetY + (midY - minY) * scale;
             let dx = p2.x - p1.x; let dy = p2.y - p1.y; let len = Math.hypot(dx, dy); let nx = -dy / len; let ny = dx / len; let textPx = px + nx * 14; let textPy = py + ny * 14;
-            let shortMat = getShortMat(mursApt[i].mat); let epText = mursApt[i].ep ? ` (${mursApt[i].ep}cm)` : ''; let text = mursApt[i].l + "m " + shortMat + epText;
+            let shortMat = getShortMat(mursApt[i].mat); let epText = mursApt[i].ep ? ` (${mursApt[i].ep}cm)` : ''; 
+            // Numéro de séquence N°1, N°2... + longueur + matériau
+            let text = `N°${i+1} ${mursApt[i].l}m ${shortMat}${epText}`;
             let tw = ctx.measureText(text).width;
-            ctx.fillStyle = "rgba(255, 255, 255, 0.9)"; ctx.fillRect(textPx - tw/2 - 4, textPy - 10, tw + 8, 20); ctx.fillStyle = "#0F172A"; ctx.fillText(text, textPx, textPy);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.9)"; ctx.fillRect(textPx - tw/2 - 4, textPy - 10, tw + 8, 20);
+            // Numéro en bleu, reste en noir
+            ctx.fillStyle = "#2563EB"; ctx.fillText(`N°${i+1}`, textPx - (tw)/2 + ctx.measureText(`N°${i+1}`).width/2 - tw/2 + 2, textPy);
+            ctx.fillStyle = "#0F172A"; 
+            let numW = ctx.measureText(`N°${i+1} `).width;
+            ctx.textAlign = "left";
+            ctx.fillText(`${mursApt[i].l}m ${shortMat}${epText}`, textPx - tw/2 + numW, textPy);
+            ctx.textAlign = "center";
         }
 
         let compX = 25; let compY = 30;
@@ -2859,7 +3157,6 @@ function getShortMat(mat) {
         const cont = document.getElementById('f-bibli-container'); 
         if(!cont) return;
         
-        // Bouton pour créer une nouvelle fenêtre à partir de zéro
         let html = `
         <div onclick="chargerModeleFen('')" style="flex: 0 0 auto; background: #F8FAFC; border: 2px dashed #CBD5E1; border-radius: 12px; padding: 12px; cursor: pointer; display:flex; align-items:center; justify-content:center; flex-direction:column; min-width: 100px; transition:0.2s;">
             <div style="font-size:24px; margin-bottom:4px;">✨</div>
@@ -2868,25 +3165,70 @@ function getShortMat(mat) {
 
         if(db.modelesFens && db.modelesFens.length > 0) {
             db.modelesFens.forEach((m, index) => {
-                let repere = "F" + (index + 1); // Génère F1, F2, F3...
-                
-                // Formatage des infos pour que ce soit compact et lisible
+                let repere = "F" + (index + 1);
                 let dimStr = m.type === 'Hublot' ? `Ø${m.diam}` : `${m.l}x${m.h}`;
                 let shortFer = m.fer && m.fer !== 'Absence' ? m.fer.substring(0, 14) + '...' : 'Sans volet';
-                let ori = m.ori ? m.ori.substring(0,1) : '-'; // N, S, E, O
+                let ori = m.ori ? m.ori.substring(0,1) : '-';
                 
                 html += `
-                <div onclick="chargerModeleFen('${m.id}')" style="flex: 0 0 auto; background: var(--acc-l); border: 2px solid #BFDBFE; border-radius: 12px; padding: 12px; cursor: pointer; min-width: 140px; transition: 0.2s; box-shadow: 0 4px 10px rgba(37,99,235,0.05);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="background:var(--acc); color:#fff; font-weight:900; font-size:16px; padding:4px 10px; border-radius:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">${repere}</span>
-                        <span style="font-size:14px; font-weight:900; color:var(--acc); background:#fff; padding:2px 8px; border-radius:6px;">${ori}</span>
+                <div style="position:relative; flex: 0 0 auto; display:inline-block;">
+                    <div onclick="chargerModeleFen('${m.id}')" style="background: var(--acc-l); border: 2px solid #BFDBFE; border-radius: 12px; padding: 12px; cursor: pointer; min-width: 140px; transition: 0.2s; box-shadow: 0 4px 10px rgba(37,99,235,0.05);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="background:var(--acc); color:#fff; font-weight:900; font-size:16px; padding:4px 10px; border-radius:8px;">${repere}</span>
+                            <span style="font-size:14px; font-weight:900; color:var(--acc); background:#fff; padding:2px 8px; border-radius:6px;">${ori}</span>
+                        </div>
+                        <div style="font-size:14px; color:var(--tx); font-weight:900; margin-bottom:4px;">${escHtml(dimStr)} cm</div>
+                        <div style="font-size:11px; font-weight:700; color:var(--tx2);">${escHtml(shortFer)}</div>
                     </div>
-                    <div style="font-size:14px; color:var(--tx); font-weight:900; margin-bottom:4px;">${dimStr} cm</div>
-                    <div style="font-size:11px; font-weight:700; color:var(--tx2);">${shortFer}</div>
+                    <button onclick="supprimerModeleFen('${m.id}')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--dan);color:#fff;border:none;font-size:11px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;" title="Supprimer ce modèle">✕</button>
                 </div>`;
             });
         }
         cont.innerHTML = html;
+    }
+
+    // FIX BUG 1 — chargerModeleFen était appelée mais jamais définie
+    function chargerModeleFen(modId) {
+        // Réinitialise le mode édition si actif (on repart sur une nouvelle fenêtre)
+        editParoiId = null;
+        const saveBtn = document.getElementById('btn-save-fens');
+        if (saveBtn) saveBtn.textContent = 'Enregistrer';
+
+        if (!modId) {
+            // Nouvelle fenêtre vierge — vider les champs dimensions uniquement
+            ['f-l','f-h','f-nb','f-motifs'].forEach(id => {
+                const el = document.getElementById(id); if(el) el.value = id==='f-nb'||id==='f-motifs' ? '1' : '';
+            });
+            const diam = document.getElementById('f-diam'); if(diam) diam.value = '';
+            return;
+        }
+
+        const mod = db.modelesFens.find(m => String(m.id) === String(modId));
+        if (!mod) return;
+
+        // Charger tous les champs du modèle dans le formulaire
+        const set = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
+        set('f-ori',    mod.ori);
+        set('f-type',   mod.type);
+        toggleFenType();
+        set('f-mat',    mod.mat);
+        set('f-vit',    mod.vit);
+        set('f-ep',     mod.ep);
+        set('f-fer',    mod.fer);
+        set('f-l',      mod.l);
+        set('f-h',      mod.h);
+        set('f-diam',   mod.diam);
+        set('f-nb',     '1');      // Quantité toujours 1 par défaut sur un nouveau tirage
+        set('f-motifs', mod.motifs || '1');
+        toast("Modèle F" + (db.modelesFens.indexOf(mod)+1) + " chargé ✓");
+    }
+
+    // Supprimer un modèle de la bibliothèque (sans toucher aux fenêtres existantes)
+    function supprimerModeleFen(modId) {
+        db.modelesFens = db.modelesFens.filter(m => String(m.id) !== String(modId));
+        sauvegarderLocal();
+        renderBibliFens();
+        toast("Modèle supprimé de la bibliothèque");
     }
 
     function getBatimentOptionsHtml(selected = "") {
@@ -3097,10 +3439,43 @@ function getShortMat(mat) {
 
     function updateApptBadges(aptId) {
         let el = document.getElementById('badges-' + aptId); if(!el) return;
-        const myC = db.chaufs.filter(c => c.aptId === aptId); const myE = db.ecss.filter(e => e.aptId === aptId);
-        const m = db.murs.filter(x=>x.aid===aptId).length; const f = db.fens.filter(x=>x.aid===aptId).length; const p = db.plfs.filter(x=>x.aid===aptId).length; const s = db.plas.filter(x=>x.aid===aptId).length; const po = db.portes.filter(x=>x.aid===aptId).length;
-        const badgeSchema = (m>2) ? '<span class="badge-elem badge-ok">📐 Plans Actifs</span>' : '<span class="badge-elem badge-warn">📐 Plan Vide</span>';
-        el.innerHTML = `<span class="badge-elem">🧱 ${m}</span> <span class="badge-elem">🪟 ${f}</span> <span class="badge-elem">🚪 ${po}</span> <span class="badge-elem">🔝 ${p}</span> <span class="badge-elem">🔽 ${s}</span> <span class="badge-elem ${myC.length?'badge-ok':'badge-warn'}">🔥 ${myC.length}</span> <span class="badge-elem ${myE.length?'badge-ok':'badge-warn'}">🚿 ${myE.length}</span> ${badgeSchema}`;
+        const myC = db.chaufs.filter(c => c.aptId === aptId);
+        const myE = db.ecss.filter(e => e.aptId === aptId);
+        const m  = db.murs.filter(x=>String(x.aid)===String(aptId)).length;
+        const f  = db.fens.filter(x=>String(x.aid)===String(aptId)).length;
+        const po = db.portes.filter(x=>String(x.aid)===String(aptId)).length;
+        const p  = db.plfs.filter(x=>String(x.aid)===String(aptId)).length;
+        const s  = db.plas.filter(x=>String(x.aid)===String(aptId)).length;
+
+        // Règles de complétion — adaptées au DPE copropriété
+        const items = [
+            { icon:'🧱', label:`Murs (${m})`,    ok: m > 0,          na: false },
+            { icon:'🪟', label:`Fen. (${f})`,    ok: f > 0,          na: false },
+            { icon:'🚪', label:`Portes (${po})`, ok: po > 0,         na: po === 0 && m > 0 },
+            { icon:'🔝', label:`Plaf. (${p})`,   ok: p > 0,          na: false },
+            { icon:'🔽', label:`Planch. (${s})`, ok: s > 0,          na: false },
+            { icon:'🔥', label:`Chauf. (${myC.length})`, ok: myC.length > 0, na: false },
+            { icon:'🚿', label:`ECS (${myE.length})`,    ok: myE.length > 0, na: false },
+        ];
+
+        // Score de complétion (portes non obligatoires)
+        const mandatory = items.filter(i => !i.na);
+        const done = mandatory.filter(i => i.ok).length;
+        const pct = Math.round((done / mandatory.length) * 100);
+        const fillColor = pct === 100 ? '#16A34A' : pct >= 60 ? '#F59E0B' : '#EF4444';
+
+        const chips = items.map(i => {
+            const cls = i.na ? 'compl-na' : (i.ok ? 'compl-ok' : 'compl-warn');
+            const icon = i.na ? '' : (i.ok ? '✓' : '⚠');
+            return `<span class="compl-chip ${cls}">${i.icon} ${icon} ${i.label}</span>`;
+        }).join('');
+
+        el.innerHTML = `
+            <div class="compl-bar">${chips}</div>
+            <div class="compl-score">
+                <div class="compl-score-fill" style="width:${pct}%;background:${fillColor};"></div>
+            </div>
+            <div style="font-size:10px;font-weight:800;color:${fillColor};margin-top:3px;">${pct}% complet</div>`;
     }
 
 
@@ -3191,7 +3566,7 @@ function getShortMat(mat) {
                             </div>
                             <select id="ifc-gen-${a.id}" onchange="checkChaudiereECS('ind', '${a.id}')" style="width:100%; padding:8px; margin-bottom:5px; border-radius:6px; border:1px solid var(--bor); background:#F8FAFC;"><option value="">Générateur</option></select>
                             <select id="ifc-emetteur-${a.id}" style="width:100%; padding:8px; margin-bottom:5px; border-radius:6px; border:1px solid var(--bor); background:#F8FAFC;"><option value="">Émetteur</option></select>
-                            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="number" inputmode="decimal" step="any" pattern="[0-9]*" id="ifc-annee-${a.id}" placeholder="Année" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"><input type="number" inputmode="decimal" step="any" id="ifc-puissance-${a.id}" placeholder="Puiss. kW" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"></div>
+                            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="number" inputmode="decimal" step="1" inputmode="numeric" id="ifc-annee-${a.id}" placeholder="Année" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"><input type="number" inputmode="decimal" step="any" inputmode="decimal" id="ifc-puissance-${a.id}" placeholder="Puiss. kW" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"></div>
                             <button id="btn-chauf-${a.id}" class="btn-s" style="padding:10px; width:100%; background:var(--acc-l); color:var(--acc); font-weight:bold; border:1px dashed var(--acc); border-radius:8px;" onclick="ajouterChauf('${a.id}')">Ajouter Chauffage</button>
                         </div>
                     </div>
@@ -3208,7 +3583,7 @@ function getShortMat(mat) {
                                 <button class="btn-xs" style="background:var(--acc-l); color:var(--acc); border:1px solid #BFDBFE; padding:8px 12px; font-size:16px;" onclick="triggerUpload('ecsIndTemp', '${a.id}')">📷</button>
                             </div>
                             <select id="ife-type-${a.id}" style="width:100%; padding:8px; margin-bottom:5px; border-radius:6px; border:1px solid var(--bor); background:#F8FAFC;"><option value="">Type</option></select>
-                            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="number" inputmode="decimal" step="any" pattern="[0-9]*" id="ife-annee-${a.id}" placeholder="Année" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"><input type="number" inputmode="decimal" step="any" pattern="[0-9]*" id="ife-vol-${a.id}" placeholder="Vol (L)" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"></div>
+                            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="number" inputmode="decimal" step="1" inputmode="numeric" id="ife-annee-${a.id}" placeholder="Année" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"><input type="number" inputmode="decimal" step="1" inputmode="numeric" id="ife-vol-${a.id}" placeholder="Vol (L)" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--bor);"></div>
                             <button id="btn-ecs-${a.id}" class="btn-s" style="padding:10px; width:100%; background:var(--acc-l); color:var(--acc); font-weight:bold; border:1px dashed var(--acc); border-radius:8px;" onclick="ajouterEcs('${a.id}')">Ajouter ECS</button>
                         </div>
                     </div>
@@ -3285,7 +3660,11 @@ let el = editParoiId
     : { id: genId(), aid: String(curAppt ?? 'copro') };
 
 if(!el) { toast('❌ Élément à modifier introuvable.'); editParoiId = null; return; }
-el.aid = String(curAppt ?? 'copro');
+// FIX BUG 4 : en mode édition, on ne touche PAS à l'aid (évite ré-affectation silencieuse)
+// En mode création, on affecte le lot actif
+if (!editParoiId) {
+    el.aid = String(curAppt ?? 'copro');
+}
 el.nivInt = Number(curNivInt ?? 0);
         if(type === 'murs') { 
             let oldOri = el.ori; el.ori = document.getElementById('m-ori').value; el.donne = document.getElementById('m-donne').value; el.mat = document.getElementById('m-mat').value; el.l = document.getElementById('m-l').value; el.h = document.getElementById('m-h').value; el.ep = document.getElementById('m-ep').value; el.doub = document.getElementById('m-doub').value; el.iso = document.getElementById('m-iso').value; el.isoEp = document.getElementById('m-iso-ep').value; 
@@ -3321,14 +3700,13 @@ el.nivInt = Number(curNivInt ?? 0);
                 renderBibliFens(); 
             }
             
-            // FIX : modIndex et el.nom sont dans le bloc fens où ftype EST en scope
-            let modIndex = db.modelesFens.findIndex(m => m.type === ftype && m.mat === fmat && m.vit === fvit && m.ep === fep && m.fer === ffer && m.l === fl && m.h === fh && m.diam === fdiam && m.ori === fori && m.motifs === fmotifs);
+            // FIX BUG 3 : en mode création → nom séquentiel "Fenêtre X"
+            // en mode édition → conserver le nom existant, ne pas l'écraser avec "F"+modIndex
             if (!editParoiId) { 
                 let maxFen = 0; db.fens.forEach(f => { if(f.nom) { let m = f.nom.match(/Fenêtre (\d+)/); if(m && parseInt(m[1]) > maxFen) maxFen = parseInt(m[1]); } }); 
                 el.nom = "Fenêtre " + (maxFen + 1); 
-            } else {
-                el.nom = "F" + (modIndex + 1);
             }
+            // (en édition, el.nom garde sa valeur existante — on ne l'écrase pas)
             el.ori = fori; el.type = ftype; el.mat = fmat; el.vit = fvit; el.ep = fep; el.fer = ffer; el.l = fl; el.h = fh; el.diam = fdiam; el.surf = fsurf; el.nb = document.getElementById('f-nb').value; el.motifs = fmotifs;
         } else if (type === 'portes') { el.type = document.getElementById('po-type').value; el.mat = document.getElementById('po-mat').value; el.donne = document.getElementById('po-donne').value; el.iso = document.getElementById('po-iso').value; el.sas = document.getElementById('po-sas').value; el.l = document.getElementById('po-l').value; el.h = document.getElementById('po-h').value;
         } else if (type === 'plfs') { el.type = document.getElementById('p-type').value; el.donne = document.getElementById('p-donne').value; el.l = document.getElementById('p-l').value; el.larg = document.getElementById('p-larg').value; el.s = document.getElementById('p-s').value; el.iso = document.getElementById('p-iso').value; el.isoEp = document.getElementById('p-iso-ep').value;
@@ -3358,17 +3736,85 @@ el.nivInt = Number(curNivInt ?? 0);
         // Mettre à jour le bouton texte
         const btnMap = { murs: 'btn-save-murs', fens: 'btn-save-fens', portes: 'btn-save-portes', plfs: 'btn-save-plfs', plas: 'btn-save-plas' };
         const lblMap = { murs: 'Enregistrer ce mur', fens: 'Enregistrer', portes: 'Enregistrer', plfs: 'Enregistrer', plas: 'Enregistrer' };
-        const btn = document.getElementById(btnMap[type]); if(btn) btn.textContent = lblMap[type] || 'Enregistrer';
+        const btn = document.getElementById(btnMap[type]);
+        if (btn) {
+            btn.textContent = lblMap[type] || 'Enregistrer';
+            // Anti-double-sauvegarde : désactivation 1.2s après enregistrement
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 1200);
+        }
         toast("Enregistré ✓ Propriétés conservées.");
     }
 
     function editerParoi(type, id) {
         editParoiId = id;
-        // FIX : comparaison String pour retrouver la paroi
         const p = db[type].find(x => String(x.id) === String(id));
         if (!p) { toast('❌ Élément introuvable.'); editParoiId = null; return; }
-        if(type === 'murs') { document.getElementById('m-ori').value = p.ori; document.getElementById('m-donne').value = p.donne; document.getElementById('m-mat').value = p.mat; document.getElementById('m-l').value = p.l; document.getElementById('m-h').value = p.h; document.getElementById('m-ep').value = p.ep || ''; document.getElementById('m-doub').value = p.doub || 'ABSENT'; document.getElementById('m-iso').value = p.iso || 'Non'; document.getElementById('m-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-murs').textContent = "Modifier ce mur"; } else if (type === 'fens') { document.getElementById('f-bibli').value = ''; document.getElementById('f-ori').value = p.ori || 'Nord'; document.getElementById('f-type').value = p.type; toggleFenType(); document.getElementById('f-mat').value = p.mat; document.getElementById('f-vit').value = p.vit; document.getElementById('f-ep').value = p.ep || ''; document.getElementById('f-fer').value = p.fer; document.getElementById('f-l').value = p.l || ''; document.getElementById('f-h').value = p.h || ''; if(document.getElementById('f-diam')) document.getElementById('f-diam').value = p.diam || ''; document.getElementById('f-nb').value = p.nb || '1'; document.getElementById('f-motifs').value = p.motifs || '1'; document.getElementById('btn-save-fens').textContent = "Modifier cette fenêtre"; } else if (type === 'portes') { document.getElementById('po-type').value = p.type || 'Porte opaque pleine'; document.getElementById('po-mat').value = p.mat || 'Bois'; document.getElementById('po-donne').value = p.donne || 'Extérieur'; document.getElementById('po-iso').value = p.iso || 'Non isolée / Inconnue'; document.getElementById('po-sas').value = p.sas || 'Non'; document.getElementById('po-l').value = p.l || ''; document.getElementById('po-h').value = p.h || ''; document.getElementById('btn-save-portes').textContent = "Modifier cette porte"; } else if (type === 'plfs') { document.getElementById('p-type').value = p.type; document.getElementById('p-donne').value = p.donne; document.getElementById('p-l').value = p.l || ''; document.getElementById('p-larg').value = p.larg || ''; document.getElementById('p-s').value = p.s || ''; document.getElementById('p-iso').value = p.iso || 'Non'; document.getElementById('p-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-plfs').textContent = "Modifier ce plafond"; } else if (type === 'plas') { document.getElementById('s-type').value = p.type; document.getElementById('s-donne').value = p.donne; document.getElementById('s-l').value = p.l || ''; document.getElementById('s-larg').value = p.larg || ''; document.getElementById('s-s').value = p.s || ''; document.getElementById('s-iso').value = p.iso || 'Non'; document.getElementById('s-iso-ep').value = p.isoEp || ''; document.getElementById('btn-save-plas').textContent = "Modifier ce plancher"; }
-        window.scrollTo(0,0);
+
+        const set = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val || ''; };
+
+        if(type === 'murs') {
+            set('m-ori',    p.ori);
+            set('m-donne',  p.donne);
+            set('m-mat',    p.mat);
+            set('m-l',      p.l);
+            set('m-h',      p.h);
+            set('m-ep',     p.ep);
+            set('m-doub',   p.doub || 'ABSENT');
+            set('m-iso',    p.iso || 'Non');
+            set('m-iso-ep', p.isoEp);
+            document.getElementById('btn-save-murs').textContent = "Modifier ce mur";
+
+        } else if (type === 'fens') {
+            // FIX BUG 2 : f-bibli n'existe pas dans le DOM — guard null-safe
+            const bibli = document.getElementById('f-bibli');
+            if (bibli) bibli.value = '';
+            set('f-ori',    p.ori || 'Nord');
+            set('f-type',   p.type);
+            toggleFenType();
+            set('f-mat',    p.mat);
+            set('f-vit',    p.vit);
+            set('f-ep',     p.ep);
+            set('f-fer',    p.fer);
+            set('f-l',      p.l);
+            set('f-h',      p.h);
+            set('f-diam',   p.diam);
+            set('f-nb',     p.nb || '1');
+            set('f-motifs', p.motifs || '1');
+            document.getElementById('btn-save-fens').textContent = "Modifier cette fenêtre";
+
+        } else if (type === 'portes') {
+            set('po-type',  p.type || 'Porte opaque pleine');
+            set('po-mat',   p.mat || 'Bois');
+            set('po-donne', p.donne || 'Extérieur');
+            set('po-iso',   p.iso || 'Non isolée / Inconnue');
+            set('po-sas',   p.sas || 'Non');
+            set('po-l',     p.l);
+            set('po-h',     p.h);
+            document.getElementById('btn-save-portes').textContent = "Modifier cette porte";
+
+        } else if (type === 'plfs') {
+            set('p-type',   p.type);
+            set('p-donne',  p.donne);
+            set('p-l',      p.l);
+            set('p-larg',   p.larg);
+            set('p-s',      p.s);
+            set('p-iso',    p.iso || 'Non');
+            set('p-iso-ep', p.isoEp);
+            document.getElementById('btn-save-plfs').textContent = "Modifier ce plafond";
+
+        } else if (type === 'plas') {
+            set('s-type',   p.type);
+            set('s-donne',  p.donne);
+            set('s-l',      p.l);
+            set('s-larg',   p.larg);
+            set('s-s',      p.s);
+            set('s-iso',    p.iso || 'Non');
+            set('s-iso-ep', p.isoEp);
+            document.getElementById('btn-save-plas').textContent = "Modifier ce plancher";
+        }
+        window.scrollTo(0, 0);
     }
 
     function clonerParoi(type, id) {
@@ -3387,36 +3833,265 @@ el.nivInt = Number(curNivInt ?? 0);
         if(type === 'murs') drawCroquis();
         toast("Élément cloné ✓");
     }
-    // FIX : suppElement avec comparaison String stricte
+    // Réaffectation d'un mur/fenêtre à un autre lot depuis la liste
     function suppElement(type, id) { db[type] = db[type].filter(x => String(x.id) !== String(id)); sauvegarderLocal(); renderElementsList(type); if(type === 'murs') drawCroquis(); }
-    
+
+    function reassignElement(type, id, newAid) {
+        const el = db[type].find(x => String(x.id) === String(id));
+        if (!el) return;
+        el.aid = String(newAid);
+        sauvegarderLocal();
+        renderElementsList(type); // ← appelle renderBibliGlobale en fin
+        if (type === 'murs') drawCroquis();
+        toast("Réaffecté ✓");
+    }
+
+    // Déplacer un mur vers le haut ou le bas dans db.murs (pour un apt+niveau donné)
+    function moveWall(id, dir) {
+        // Récupère les indices globaux des murs de ce lot/niveau dans db.murs
+        const indices = db.murs.reduce((acc, m, i) => {
+            if (String(m.aid ?? 'copro') === String(curAppt ?? 'copro') &&
+                Number(m.nivInt ?? 0) === Number(curNivInt ?? 0)) acc.push(i);
+            return acc;
+        }, []);
+        const posInGroup = indices.findIndex(i => String(db.murs[i].id) === String(id));
+        if (posInGroup < 0) return;
+        const targetPos = posInGroup + dir;
+        if (targetPos < 0 || targetPos >= indices.length) return;
+        // Échange dans db.murs
+        const iA = indices[posInGroup];
+        const iB = indices[targetPos];
+        [db.murs[iA], db.murs[iB]] = [db.murs[iB], db.murs[iA]];
+        sauvegarderLocal();
+        renderElementsList('murs');
+        drawCroquis();
+        // La bibli globale est mise à jour par renderElementsList → renderBibliGlobale
+    }
+
+    // Génère le select de réaffectation de lot
+    function getAidSelectHtml(type, id, currentAid) {
+        let opts = `<option value="copro" ${currentAid==='copro'?'selected':''}>🏢 Communs</option>`;
+        db.appts.forEach(a => {
+            opts += `<option value="${a.id}" ${String(currentAid)===String(a.id)?'selected':''}>Lot ${escHtml(a.num)}</option>`;
+        });
+        return `<select onchange="reassignElement('${type}','${id}',this.value)" 
+            style="font-size:11px;font-weight:700;color:var(--acc);background:var(--acc-l);border:1px solid #BFDBFE;
+            border-radius:6px;padding:3px 6px;margin-top:4px;width:100%;-webkit-appearance:none;">${opts}</select>`;
+    }
+
     function renderElementsList(tabId) {
         if(!curAppt) curAppt = 'copro'; 
         let cont, data, type;
-        if(tabId === 'murs') { cont = document.getElementById('list-murs'); data = db.murs; type = 'murs'; } else if(tabId === 'fen' || tabId === 'fens') { cont = document.getElementById('list-fens'); data = db.fens; type = 'fens'; } else if(tabId === 'portes') { cont = document.getElementById('list-portes'); data = db.portes; type = 'portes'; } else if(tabId === 'plafonds' || tabId === 'plfs') { cont = document.getElementById('list-plfs'); data = db.plfs; type = 'plfs'; } else if(tabId === 'planchers' || tabId === 'plas') { cont = document.getElementById('list-plas'); data = db.plas; type = 'plas'; }
-        
-  cont.innerHTML = data.filter(x =>    String(x.aid ?? 'copro') === String(curAppt ?? 'copro') && Number(x.nivInt ?? 0) === Number(curNivInt ?? 0)).map(x => {
-        let dimText = ""; let titleText = x.mat || x.type;
-            if (type === 'fens') {
-                if (x.type === 'Hublot') { dimText = `Ø: ${x.diam||'?'}cm (Surf: ${x.surf||'?'}m²) | Lame: ${x.ep||'?'}mm | Qté: ${x.nb||1} (Motifs: ${x.motifs||1})`; } else { dimText = `Dim: ${x.l||'?'}x${x.h||'?'}cm | Lame: ${x.ep||'?'}mm | Qté: ${x.nb||1} (Motifs: ${x.motifs||1})`; }
-                let shortFenMat = (x.mat || '').replace("Menuiserie ", ""); if(shortFenMat === "métallique avec rupture de pont thermique") shortFenMat = "Métal (avec RPT)"; if(shortFenMat === "métallique sans rupture de pont thermique") shortFenMat = "Métal (sans RPT)"; shortFenMat = shortFenMat.charAt(0).toUpperCase() + shortFenMat.slice(1); titleText = `${x.nom ? x.nom + ' - ' : ''}${shortFenMat}`;
-            } else if (type === 'plfs' || type === 'plas') { if (x.s) dimText = `Surf: ${x.s}m²`; else dimText = `Dim: ${x.l||'?'} x ${x.larg||'?'}m`; if(x.iso && x.iso !== 'Non') dimText += ` | Iso: ${x.iso}${x.isoEp ? ' '+x.isoEp+'cm' : ''}`;
-            } else if (type === 'murs') { dimText = `Dim: ${x.l||'?'} x ${x.h||'?'}m`; if(x.ep) dimText += ` | Ep: ${x.ep}cm`; if(x.iso && x.iso !== 'Non') dimText += ` | Iso: ${x.iso}${x.isoEp ? ' '+x.isoEp+'cm' : ''}`; if (x.vectX !== undefined) titleText = "Mur (Fermeture auto)";
-            } else if (type === 'portes') { dimText = `Dim: ${x.l||'?'} x ${x.h||'?'}m | Iso: ${x.iso||'Non'} | Sas: ${x.sas||'Non'}`; titleText = `${x.type} (${x.mat || '?'})`; }
-            const badgeText = type === 'fens' ? (x.ori || 'N/A') : (type === 'portes' ? 'Porte' : (x.ori || 'Surf.'));
+        if(tabId === 'murs') { cont = document.getElementById('list-murs'); data = db.murs; type = 'murs'; }
+        else if(tabId === 'fen' || tabId === 'fens') { cont = document.getElementById('list-fens'); data = db.fens; type = 'fens'; }
+        else if(tabId === 'portes') { cont = document.getElementById('list-portes'); data = db.portes; type = 'portes'; }
+        else if(tabId === 'plafonds' || tabId === 'plfs') { cont = document.getElementById('list-plfs'); data = db.plfs; type = 'plfs'; }
+        else if(tabId === 'planchers' || tabId === 'plas') { cont = document.getElementById('list-plas'); data = db.plas; type = 'plas'; }
+        if (!cont || !data) return;
+
+        // Éléments filtrés pour ce lot/niveau
+        const filtered = data.reduce((acc, x, globalIdx) => {
+            if (String(x.aid ?? 'copro') === String(curAppt ?? 'copro') &&
+                Number(x.nivInt ?? 0) === Number(curNivInt ?? 0)) {
+                acc.push({ x, globalIdx, seqNum: acc.length + 1 });
+            }
+            return acc;
+        }, []);
+
+        if (filtered.length === 0) { cont.innerHTML = ''; return; }
+
+        cont.innerHTML = filtered.map(({ x, seqNum }) => {
+            let dimText = '', titleText = x.mat || x.type;
+            const isMur = type === 'murs';
+            const isFen = type === 'fens';
+
+            if (isFen) {
+                dimText = x.type === 'Hublot'
+                    ? `Ø: ${x.diam||'?'}cm | Lame: ${x.ep||'?'}mm | Qté: ${x.nb||1} (Motifs: ${x.motifs||1})`
+                    : `Dim: ${x.l||'?'}×${x.h||'?'}cm | Lame: ${x.ep||'?'}mm | Qté: ${x.nb||1} (Motifs: ${x.motifs||1})`;
+                let sm = (x.mat||'').replace('Menuiserie ','');
+                if(sm==='métallique avec rupture de pont thermique') sm='Métal (avec RPT)';
+                if(sm==='métallique sans rupture de pont thermique') sm='Métal (sans RPT)';
+                sm = sm.charAt(0).toUpperCase()+sm.slice(1);
+                titleText = `${x.nom?x.nom+' - ':''}${sm}`;
+            } else if (type==='plfs'||type==='plas') {
+                dimText = x.s ? `Surf: ${x.s}m²` : `Dim: ${x.l||'?'} × ${x.larg||'?'}m`;
+                if(x.iso && x.iso!=='Non') dimText += ` | Iso: ${x.iso}${x.isoEp?' '+x.isoEp+'cm':''}`;
+            } else if (isMur) {
+                dimText = `Dim: ${x.l||'?'} × ${x.h||'?'}m`;
+                if(x.ep) dimText += ` | Ép: ${x.ep}cm`;
+                if(x.iso && x.iso!=='Non') dimText += ` | Iso: ${x.iso}${x.isoEp?' '+x.isoEp+'cm':''}`;
+                if(x.vectX !== undefined) titleText = 'Mur (Fermeture auto)';
+                // Avertissement orientation manquante
+                if (!x.ori) dimText += ` <span style="color:var(--warn);font-weight:800;">⚠️ Orientation ?</span>`;
+            } else if (type==='portes') {
+                dimText = `Dim: ${x.l||'?'} × ${x.h||'?'}m | Iso: ${x.iso||'Non'} | Sas: ${x.sas||'Non'}`;
+                titleText = `${x.type} (${x.mat||'?'})`;
+            }
+
+            const badgeOri = isFen ? (x.ori||'N/A') : (type==='portes' ? 'Porte' : (x.ori||'—'));
+            // Badge numéro séquence pour murs (sens de saisie = ordre du plan)
+            const numBadge = isMur
+                ? `<span style="background:#0F172A;color:#fff;font-size:11px;font-weight:900;padding:2px 7px;border-radius:5px;margin-right:6px;">N°${seqNum}</span>`
+                : '';
+            const oriBadge = `<span class="badge">${badgeOri}</span>`;
+
+            // Boutons ↑↓ uniquement pour les murs
+            const moveButtons = isMur ? `
+                <button class="btn-xs" style="color:var(--tx2);background:#F1F5F9;border:1px solid var(--bor);width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:10px;" 
+                    onclick="moveWall('${x.id}',-1)" title="Monter">↑</button>
+                <button class="btn-xs" style="color:var(--tx2);background:#F1F5F9;border:1px solid var(--bor);width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:10px;" 
+                    onclick="moveWall('${x.id}',1)" title="Descendre">↓</button>` : '';
+
+            // Sélecteur de réaffectation (murs et fens)
+            const reassignSel = (isMur || isFen)
+                ? `<div style="margin-top:6px;">${getAidSelectHtml(type, x.id, x.aid)}</div>` : '';
+
+            // Note / mémo libre (POINT 3)
+            const noteHtml = `
+                <div id="note-d-${x.id}" class="elem-note-display" onclick="editNote('${type}','${x.id}')">${x.note ? '📝 ' + escHtml(x.note) : ''}</div>
+                <textarea id="note-i-${x.id}" class="elem-note-input" rows="2" placeholder="Mémo terrain (non exporté)…"
+                    onblur="saveNote('${type}','${x.id}')"
+                    onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveNote('${type}','${x.id}');}"></textarea>`;
+
             return `
-            <div class="item-row" style="align-items: flex-start;">
-                <div class="item-details" style="flex:1; padding-right:12px; min-width:0;">
-                    <div style="margin-bottom: 6px;"><span class="badge">${badgeText}</span> <b style="font-size:14px; color:var(--tx);">${titleText}</b></div>
-                    <div style="color:var(--tx2); font-size:12px; line-height:1.5; word-wrap: break-word;">${dimText}</div>
+            <div class="item-row" style="align-items:flex-start;">
+                <div class="item-details" style="flex:1;padding-right:8px;min-width:0;">
+                    <div style="margin-bottom:4px;">${numBadge}${oriBadge}<b style="font-size:14px;color:var(--tx);">${escHtml(String(titleText))}</b></div>
+                    <div style="color:var(--tx2);font-size:12px;line-height:1.5;word-wrap:break-word;">${dimText}</div>
+                    ${reassignSel}
+                    ${noteHtml}
                 </div>
-                <div style="display:flex; gap:6px; flex-wrap:wrap; width: 94px; justify-content:flex-start; flex-shrink:0;">
-                    <button class="btn-xs" style="color:var(--ok); background:var(--ok-l); border:1px solid #BBF7D0; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="clonerParoi('${type}', '${x.id}')">🔄</button>
-                    <button class="btn-xs" style="color:var(--acc); background:var(--acc-l); border:1px solid #BFDBFE; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="editerParoi('${type}', '${x.id}')">✏️</button>
-                    <button class="btn-xs" style="color:var(--dan); background:var(--dan-l); border:1px solid #FECACA; width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:10px;" onclick="suppElement('${type}', '${x.id}')">❌</button>
+                <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+                    <div style="display:flex;gap:4px;">
+                        ${moveButtons}
+                    </div>
+                    <div style="display:flex;gap:4px;">
+                        <button class="btn-xs" style="color:var(--ok);background:var(--ok-l);border:1px solid #BBF7D0;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:10px;" onclick="clonerParoi('${type}','${x.id}')">🔄</button>
+                        <button class="btn-xs" style="color:var(--acc);background:var(--acc-l);border:1px solid #BFDBFE;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:10px;" onclick="editerParoi('${type}','${x.id}')">✏️</button>
+                        <button class="btn-xs" style="color:var(--dan);background:var(--dan-l);border:1px solid #FECACA;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:10px;" onclick="suppElement('${type}','${x.id}')">❌</button>
+                    </div>
                 </div>
             </div>`;
         }).join('');
+        // Mettre à jour la bibliothèque globale (tous lots) en dessous
+        renderBibliGlobale(type);
+    }
+
+    // --- BIBLIOTHÈQUE GLOBALE ---
+    // État d'ouverture de chaque accordion (persisté en mémoire de session)
+    const _bibliOpen = { murs: true, fens: true, portes: true, plfs: true, plas: true };
+
+    function toggleBibliGlobale(type) {
+        _bibliOpen[type] = !_bibliOpen[type];
+        renderBibliGlobale(type);
+    }
+
+    function renderBibliGlobale(type) {
+        const contId = { murs:'bibli-g-murs', fens:'bibli-g-fens', portes:'bibli-g-portes', plfs:'bibli-g-plfs', plas:'bibli-g-plas' }[type];
+        const cont = document.getElementById(contId);
+        if (!cont) return;
+
+        const data = db[type] || [];
+        if (data.length === 0) { cont.innerHTML = ''; return; }
+
+        const isOpen = _bibliOpen[type];
+        const typeLabels = { murs:'🧱 Murs', fens:'🪟 Fenêtres', portes:'🚪 Portes', plfs:'🔝 Plafonds', plas:'🔽 Planchers' };
+
+        // Grouper par lot
+        const groups = {}; // aid → [elements]
+        // Ordre : copro d'abord, puis lots dans l'ordre de db.appts
+        const lotOrder = ['copro', ...db.appts.map(a => String(a.id))];
+        data.forEach(x => {
+            const aid = String(x.aid ?? 'copro');
+            if (!groups[aid]) groups[aid] = [];
+            groups[aid].push(x);
+        });
+
+        // Fonction de résumé compact selon le type
+        function summary(x) {
+            if (type === 'murs') {
+                let s = `${x.ori||'?'} · ${x.l||'?'}×${x.h||'?'}m`;
+                if (x.ep) s += ` · Ép.${x.ep}cm`;
+                return s;
+            }
+            if (type === 'fens') {
+                let dim = x.type === 'Hublot' ? `Ø${x.diam}cm` : `${x.l||'?'}×${x.h||'?'}cm`;
+                return `${x.ori||'?'} · ${dim} · Qté ${x.nb||1}`;
+            }
+            if (type === 'portes') return `${x.type||'?'} · ${x.l||'?'}×${x.h||'?'}m`;
+            if (type === 'plfs' || type === 'plas') {
+                return x.s ? `Surf: ${x.s}m²` : `${x.l||'?'}×${x.larg||'?'}m`;
+            }
+            return '';
+        }
+
+        function matShort(x) {
+            if (type === 'murs') return escHtml(getShortMat(x.mat));
+            if (type === 'fens') {
+                let m = (x.mat||'').replace('Menuiserie ','');
+                if (m.includes('rupture')) m = 'Métal RPT';
+                if (m.includes('sans rupture')) m = 'Métal';
+                return escHtml(m.charAt(0).toUpperCase()+m.slice(1));
+            }
+            if (type === 'plfs' || type === 'plas') return escHtml((x.type||'').substring(0,20));
+            return escHtml(x.mat || x.type || '');
+        }
+
+        // Build HTML
+        let bodyHtml = '';
+        let totalCount = 0;
+
+        lotOrder.forEach(aid => {
+            const items = groups[aid];
+            if (!items || items.length === 0) return;
+            totalCount += items.length;
+
+            const apt = aid === 'copro' ? null : db.appts.find(a => String(a.id) === aid);
+            const lotLabel = aid === 'copro' ? '🏢 Parties communes' : `🚪 Lot ${escHtml(apt ? apt.num : '?')}`;
+
+            bodyHtml += `<div class="bibli-g-lot-hd">${lotLabel}<span class="bibli-g-lot-count">${items.length}</span></div>`;
+
+            items.forEach((x, seqInLot) => {
+                const numLabel = type === 'murs' ? `<span style="background:#0F172A;color:#fff;font-size:10px;font-weight:900;padding:1px 6px;border-radius:4px;margin-right:5px;">N°${seqInLot+1}</span>` : '';
+                // Select de réaffectation
+                let opts = `<option value="copro" ${aid==='copro'?'selected':''}>🏢 Communs</option>`;
+                db.appts.forEach(a => { opts += `<option value="${a.id}" ${String(x.aid)===String(a.id)?'selected':''}>Lot ${escHtml(a.num)}</option>`; });
+                const sel = `<select class="bibli-g-sel" onchange="reassignElement('${type}','${x.id}',this.value)">${opts}</select>`;
+
+                // Boutons ↑↓ pour les murs seulement
+                const moveBtns = type === 'murs' ? `
+                    <button class="bibli-g-btn" style="background:#F1F5F9;color:var(--tx2);" onclick="moveWall('${x.id}',-1)" title="Monter">↑</button>
+                    <button class="bibli-g-btn" style="background:#F1F5F9;color:var(--tx2);" onclick="moveWall('${x.id}',1)" title="Descendre">↓</button>` : '';
+
+                bodyHtml += `
+                <div class="bibli-g-row">
+                    <div class="bibli-g-info">
+                        <div style="font-size:13px;font-weight:800;color:var(--tx);">${numLabel}${matShort(x)}</div>
+                        <div class="bibli-g-dim">${escHtml(summary(x))}</div>
+                        ${x.note ? `<div style="font-size:11px;font-style:italic;color:#94A3B8;margin-top:3px;">📝 ${escHtml(x.note)}</div>` : ''}
+                        ${sel}
+                    </div>
+                    <div class="bibli-g-btns">
+                        ${moveBtns}
+                        <button class="bibli-g-btn" style="background:var(--acc-l);color:var(--acc);" onclick="editerParoi('${type}','${x.id}')" title="Modifier">✏️</button>
+                        <button class="bibli-g-btn" style="background:var(--dan-l);color:var(--dan);" onclick="suppElement('${type}','${x.id}')" title="Supprimer">❌</button>
+                    </div>
+                </div>`;
+            });
+        });
+
+        cont.innerHTML = `
+        <div class="bibli-g-acc ${isOpen ? 'open' : ''}">
+            <div class="bibli-g-hd" onclick="toggleBibliGlobale('${type}')">
+                <div class="bibli-g-hd-title">
+                    📚 ${typeLabels[type]} — tous les lots
+                    <span class="bibli-g-hd-count">${totalCount}</span>
+                </div>
+                <span class="bibli-g-hd-arrow">▼</span>
+            </div>
+            <div class="bibli-g-body">${bodyHtml}</div>
+        </div>`;
     }
 
     // --- EXPORTS ---
