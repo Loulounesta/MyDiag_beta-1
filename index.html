@@ -3265,6 +3265,7 @@ let el = editParoiId
     ? db[type].find(x => String(x.id) === String(editParoiId))
     : { id: genId(), aid: String(curAppt ?? 'copro') };
 
+if(!el) { toast('❌ Élément à modifier introuvable.'); editParoiId = null; return; }
 el.aid = String(curAppt ?? 'copro');
 el.nivInt = Number(curNivInt ?? 0);
         if(type === 'murs') { 
@@ -3289,39 +3290,45 @@ el.nivInt = Number(curNivInt ?? 0);
                 fdiam = ''; fsurf = (((parseFloat(fl)||0) * (parseFloat(fh)||0)) / 10000).toFixed(3); 
             }
             
-            // Format clair pour la bibliothèque : [Sud] 120x130 | Volet roulant... (2 motif(s))
             let dimStr = ftype === 'Hublot' ? `Ø${fdiam}` : `${fl}x${fh}`; 
             let shortFer = ffer.length > 15 ? ffer.substring(0, 15) + '...' : (ffer || 'Sans fermeture');
             let modName = `[${fori}] ${dimStr} | ${shortFer} (${fmotifs} motif(s))`;
             
-            // Vérification si ce modèle exact existe déjà (incluant orientation et motifs)
             let existingMod = db.modelesFens.find(m => m.type === ftype && m.mat === fmat && m.vit === fvit && m.ep === fep && m.fer === ffer && m.l === fl && m.h === fh && m.diam === fdiam && m.ori === fori && m.motifs === fmotifs); 
             
             if(!existingMod) { 
-                existingMod = { id: 'mod_' + Date.now(), nom: modName, type:ftype, mat:fmat, vit:fvit, ep:fep, fer:ffer, l:fl, h:fh, diam:fdiam, ori:fori, motifs:fmotifs }; 
+                existingMod = { id: 'mod_' + genId(), nom: modName, type:ftype, mat:fmat, vit:fvit, ep:fep, fer:ffer, l:fl, h:fh, diam:fdiam, ori:fori, motifs:fmotifs }; 
                 db.modelesFens.push(existingMod); 
                 renderBibliFens(); 
             }
             
+            // FIX : modIndex et el.nom sont dans le bloc fens où ftype EST en scope
+            let modIndex = db.modelesFens.findIndex(m => m.type === ftype && m.mat === fmat && m.vit === fvit && m.ep === fep && m.fer === ffer && m.l === fl && m.h === fh && m.diam === fdiam && m.ori === fori && m.motifs === fmotifs);
             if (!editParoiId) { 
                 let maxFen = 0; db.fens.forEach(f => { if(f.nom) { let m = f.nom.match(/Fenêtre (\d+)/); if(m && parseInt(m[1]) > maxFen) maxFen = parseInt(m[1]); } }); 
                 el.nom = "Fenêtre " + (maxFen + 1); 
+            } else {
+                el.nom = "F" + (modIndex + 1);
             }
-            el.ori = fori; el.type = ftype; el.mat = fmat; el.vit = fvit; el.ep = fep; el.fer = ffer; el.l = fl; el.h = fh; el.diam = fdiam; el.surf = fsurf; el.nb = document.getElementById('f-nb').value; el.motifs = fmotifs;        } else if (type === 'portes') { el.type = document.getElementById('po-type').value; el.mat = document.getElementById('po-mat').value; el.donne = document.getElementById('po-donne').value; el.iso = document.getElementById('po-iso').value; el.sas = document.getElementById('po-sas').value; el.l = document.getElementById('po-l').value; el.h = document.getElementById('po-h').value; } else if (type === 'plfs') { el.type = document.getElementById('p-type').value; el.donne = document.getElementById('p-donne').value; el.l = document.getElementById('p-l').value; el.larg = document.getElementById('p-larg').value; el.s = document.getElementById('p-s').value; el.iso = document.getElementById('p-iso').value; el.isoEp = document.getElementById('p-iso-ep').value;} else if (type === 'plas') { el.type = document.getElementById('s-type').value; el.donne = document.getElementById('s-donne').value; el.l = document.getElementById('s-l').value; el.larg = document.getElementById('s-larg').value; el.s = document.getElementById('s-s').value; el.iso = document.getElementById('s-iso').value; el.isoEp = document.getElementById('s-iso-ep').value;}
-            // On retrouve l'index du modèle pour le nommer F1, F2...
-            let modIndex = db.modelesFens.findIndex(m => m.type === ftype && m.mat === fmat && m.vit === fvit && m.ep === fep && m.fer === ffer && m.l === fl && m.h === fh && m.diam === fdiam && m.ori === fori && m.motifs === fmotifs);
-            if (!editParoiId) { 
-                el.nom = "F" + (modIndex + 1); 
-            }        
-        // --- LOGIQUE DE MÉMOIRE : On ne vide que les dimensions pour l'élément suivant ---
+            el.ori = fori; el.type = ftype; el.mat = fmat; el.vit = fvit; el.ep = fep; el.fer = ffer; el.l = fl; el.h = fh; el.diam = fdiam; el.surf = fsurf; el.nb = document.getElementById('f-nb').value; el.motifs = fmotifs;
+        } else if (type === 'portes') { el.type = document.getElementById('po-type').value; el.mat = document.getElementById('po-mat').value; el.donne = document.getElementById('po-donne').value; el.iso = document.getElementById('po-iso').value; el.sas = document.getElementById('po-sas').value; el.l = document.getElementById('po-l').value; el.h = document.getElementById('po-h').value;
+        } else if (type === 'plfs') { el.type = document.getElementById('p-type').value; el.donne = document.getElementById('p-donne').value; el.l = document.getElementById('p-l').value; el.larg = document.getElementById('p-larg').value; el.s = document.getElementById('p-s').value; el.iso = document.getElementById('p-iso').value; el.isoEp = document.getElementById('p-iso-ep').value;
+        } else if (type === 'plas') { el.type = document.getElementById('s-type').value; el.donne = document.getElementById('s-donne').value; el.l = document.getElementById('s-l').value; el.larg = document.getElementById('s-larg').value; el.s = document.getElementById('s-s').value; el.iso = document.getElementById('s-iso').value; el.isoEp = document.getElementById('s-iso-ep').value; }
+
+        // FIX : push si nouvel élément, reset editParoiId, save, render
+        if (!editParoiId) { db[type].push(el); }
+        editParoiId = null;
+        sauvegarderLocal();
+        renderElementsList(type);
+
+        // Mémoire : vider seulement les dimensions pour la saisie suivante
         if(type === 'murs') { 
-            document.getElementById('m-l').value = ''; // On garde HSP, Matière, Epaisseur, etc.
+            document.getElementById('m-l').value = '';
             drawCroquis(); 
         } else if (type === 'fens') { 
             document.getElementById('f-l').value = ''; 
             document.getElementById('f-h').value = ''; 
-            document.getElementById('f-diam').value = ''; 
-            // On garde f-nb et f-motifs (souvent identiques pour une façade)
+            if(document.getElementById('f-diam')) document.getElementById('f-diam').value = ''; 
         } else if (type === 'portes') {
             document.getElementById('po-l').value = ''; document.getElementById('po-h').value = '';
         } else if (type === 'plfs') {
@@ -3329,6 +3336,10 @@ el.nivInt = Number(curNivInt ?? 0);
         } else if (type === 'plas') {
             document.getElementById('s-l').value = ''; document.getElementById('s-larg').value = ''; document.getElementById('s-s').value = '';
         }
+        // Mettre à jour le bouton texte
+        const btnMap = { murs: 'btn-save-murs', fens: 'btn-save-fens', portes: 'btn-save-portes', plfs: 'btn-save-plfs', plas: 'btn-save-plas' };
+        const lblMap = { murs: 'Enregistrer ce mur', fens: 'Enregistrer', portes: 'Enregistrer', plfs: 'Enregistrer', plas: 'Enregistrer' };
+        const btn = document.getElementById(btnMap[type]); if(btn) btn.textContent = lblMap[type] || 'Enregistrer';
         toast("Enregistré ✓ Propriétés conservées.");
     }
 
